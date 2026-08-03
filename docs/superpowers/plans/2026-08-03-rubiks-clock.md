@@ -1886,6 +1886,28 @@ describe('useSpeedTimer', () => {
     panel.remove()
   })
 
+  it('publishes a fresh now from the animation frame loop while counting', async () => {
+    const { view, advance, holdAll } = setup()
+    holdAll()
+    expect(view.result.current.now).toBe(0)
+    expect(view.result.current.armed).toBe(false)
+    advance(HOLD_MS)
+    // Two frames: the loop's own callback runs before one scheduled here.
+    await act(async () => {
+      await new Promise((resolve) => requestAnimationFrame(() => resolve(null)))
+      await new Promise((resolve) => requestAnimationFrame(() => resolve(null)))
+    })
+    expect(view.result.current.now).toBe(HOLD_MS)
+    expect(view.result.current.armed).toBe(true)
+  })
+
+  it('does not schedule animation frames while idle', () => {
+    const scheduled = vi.spyOn(globalThis, 'requestAnimationFrame')
+    setup()
+    expect(scheduled).not.toHaveBeenCalled()
+    scheduled.mockRestore()
+  })
+
   it('drives the machine from the touch pad helpers', () => {
     const { view, advance } = setup()
     act(() => {
@@ -2063,11 +2085,17 @@ export function useSpeedTimer(options: UseSpeedTimerOptions = {}) {
 - [ ] **Step 4: Run the tests to verify they pass**
 
 Run: `pnpm test hooks/useSpeedTimer`
-Expected: PASS — 8 tests.
+Expected: PASS — 10 tests.
 
 The `armed` flag in the first test is `false` before advancing because the rAF
 loop has not yet published a `now` past the hold delay. If `armed` flickers in
 the browser, that is a bug in the rAF effect, not in the machine.
+
+The two animation-frame tests are the only ones that exercise the loop itself:
+jsdom fires `requestAnimationFrame` on a real macrotask, so a synchronous
+`act()` never lets a tick run. Both were verified by sabotage — removing the
+`LIVE_STATUSES` gate fails the idle test, removing the effect fails the tick
+test.
 
 - [ ] **Step 5: Commit**
 
