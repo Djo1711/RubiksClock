@@ -25,7 +25,9 @@ export function createBeeper() {
   return {
     beep(count: number) {
       context ??= new AudioContext()
-      void context.resume()
+      context.resume().catch((error: unknown) => {
+        console.error('Could not resume the audio context', error)
+      })
       for (let index = 0; index < count; index += 1) {
         beepOnce(context.currentTime + index * 0.18)
       }
