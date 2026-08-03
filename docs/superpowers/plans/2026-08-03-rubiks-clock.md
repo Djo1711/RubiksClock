@@ -2337,7 +2337,7 @@ export function KeyHints({
               className={`flex h-9 w-9 items-center justify-center rounded-md border font-mono text-sm transition-colors ${
                 held.includes(code)
                   ? 'border-(--color-state-ready) bg-(--color-state-ready)/15 text-(--color-state-ready)'
-                  : 'border-neutral-700 text-neutral-500'
+                  : 'border-neutral-500 text-neutral-500'
               }`}
             >
               {keyLabel(code)}
@@ -2377,7 +2377,7 @@ export function TouchPads({
           key={index}
           type="button"
           aria-label={index === 0 ? 'Left hand pad' : 'Right hand pad'}
-          className="h-28 rounded-xl border border-neutral-700 bg-neutral-900 active:border-(--color-state-ready) active:bg-(--color-state-ready)/15"
+          className="h-28 rounded-xl border border-neutral-500 bg-neutral-900 active:border-(--color-state-ready) active:bg-(--color-state-ready)/15"
           onPointerDown={(event) => {
             event.preventDefault()
             hand.forEach(onPress)
@@ -2432,7 +2432,7 @@ export function TimerPanel({
       case 'idle':
       case 'arming':
       case 'ready':
-        return state.status === 'armingSolve' || state.status === 'inspection'
+        return state.status === 'armingSolve'
           ? formatCountdown(inspectionRemainingMs(state, now, config))
           : '0.00'
       case 'inspection':
