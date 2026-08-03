@@ -3141,59 +3141,52 @@ export function SolveList({
 
 - [ ] **Step 7: Wire the session into the screen**
 
-Replace `components/timer/timer-screen.tsx` with:
+`components/timer/timer-screen.tsx` already handles scramble loading and
+failure, and creates the provider lazily. Do **not** replace the file — those
+behaviours were hard-won and a wholesale rewrite would regress them. Modify it:
+
+1. Add these imports:
 
 ```tsx
-'use client'
-
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { useI18n } from '@/components/i18n-provider'
-import { ScrambleBar } from '@/components/scramble/scramble-bar'
 import { SessionStats } from '@/components/session/session-stats'
 import { SolveList } from '@/components/session/solve-list'
-import { TimerPanel } from '@/components/timer/timer-panel'
 import { useSession } from '@/hooks/use-session'
 import type { SolveResult } from '@/hooks/useSpeedTimer'
-import { createCubingScrambleProvider } from '@/lib/scramble/cubing-provider'
+```
 
-export function TimerScreen() {
-  const { t } = useI18n()
+2. Inside `TimerScreen`, after the `useI18n()` line, add:
+
+```tsx
   const session = useSession()
-  const provider = useRef(createCubingScrambleProvider())
-  const [scramble, setScramble] = useState('')
-  const [loadingScramble, setLoadingScramble] = useState(true)
+```
 
-  const nextScramble = useCallback(async () => {
-    setLoadingScramble(true)
-    setScramble(await provider.current.next('3x3'))
-    setLoadingScramble(false)
-  }, [])
+3. After the existing mount effect, add the handler that records the finished
+   solve against the scramble it was solved on, then fetches the next one. A
+   failed write must not become an unhandled rejection, and must not discard the
+   time the user just earned — the panel keeps showing it either way:
 
-  useEffect(() => {
-    void nextScramble()
-  }, [nextScramble])
-
-  // The scramble that was on screen during the attempt is the one recorded.
-  const onSolveComplete = useCallback(
+```tsx
+  const recordSolve = useCallback(
     async (result: SolveResult) => {
-      await session.record(result, scramble)
-      void nextScramble()
+      try {
+        await session.record(result, scramble)
+      } catch (error) {
+        // The solve stays on screen; only persistence failed (quota, private
+        // browsing). Surfacing this properly belongs with the accounts work.
+        console.error('Could not save the solve', error)
+      }
+      await nextScramble()
     },
     [nextScramble, scramble, session],
   )
+```
 
-  return (
-    <main className="mx-auto flex min-h-svh w-full max-w-4xl flex-col items-center gap-10 px-4 py-8">
-      <header className="w-full">
-        <h1 className="text-lg font-semibold">{t.appName}</h1>
-        <p className="text-sm text-neutral-400">{t.tagline}</p>
-      </header>
-      <ScrambleBar
-        scramble={scramble}
-        loading={loadingScramble}
-        onRefresh={() => void nextScramble()}
-      />
-      <TimerPanel onSolveComplete={(result) => void onSolveComplete(result)} />
+4. Change `TimerPanel`'s prop from `onSolveComplete={() => void nextScramble()}`
+   to `onSolveComplete={(result) => void recordSolve(result)}`.
+
+5. After `<TimerPanel …/>`, render the two new sections:
+
+```tsx
       <SessionStats stats={session.stats} />
       <SolveList
         solves={session.solves}
@@ -3201,10 +3194,10 @@ export function TimerScreen() {
         onRemove={(id) => void session.remove(id)}
         onClear={() => void session.clear()}
       />
-    </main>
-  )
-}
 ```
+
+Leave the header, the `ScrambleBar` call, the `useScrambleProviderRef` hook, the
+`nextScramble` callback and the mount effect exactly as they are.
 
 - [ ] **Step 8: Verify in the browser**
 
@@ -3659,35 +3652,23 @@ export function SettingsDialog({
 
 - [ ] **Step 8: Wire settings into the screen**
 
-Replace `components/timer/timer-screen.tsx` with its final version:
+Again, modify `components/timer/timer-screen.tsx` rather than replacing it.
+
+1. Add these imports:
 
 ```tsx
-'use client'
-
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { useI18n } from '@/components/i18n-provider'
-import { ScrambleBar } from '@/components/scramble/scramble-bar'
-import { SessionStats } from '@/components/session/session-stats'
-import { SolveList } from '@/components/session/solve-list'
 import { SettingsDialog } from '@/components/settings/settings-dialog'
-import { TimerPanel } from '@/components/timer/timer-panel'
-import { useSession } from '@/hooks/use-session'
-import type { SolveResult } from '@/hooks/useSpeedTimer'
-import { createCubingScrambleProvider } from '@/lib/scramble/cubing-provider'
 import { defaultSettings, loadSettings, saveSettings, type Settings } from '@/lib/settings'
 import { HOLD_MS } from '@/lib/timer/machine'
 import { INSPECTION_MS } from '@/lib/timer/penalties'
+```
 
-export function TimerScreen() {
-  const { t } = useI18n()
-  const session = useSession()
-  const provider = useRef(createCubingScrambleProvider())
-  const [scramble, setScramble] = useState('')
-  const [loadingScramble, setLoadingScramble] = useState(true)
+2. Add the settings state and its persistence. Read after mount so the
+   server-rendered markup and the first client render agree:
+
+```tsx
   const [settings, setSettings] = useState<Settings>(defaultSettings)
 
-  // Read after mount so the server-rendered markup and the first client render
-  // agree.
   useEffect(() => {
     setSettings(loadSettings())
   }, [])
@@ -3696,28 +3677,16 @@ export function TimerScreen() {
     setSettings(next)
     saveSettings(next)
   }, [])
+```
 
-  const nextScramble = useCallback(async () => {
-    setLoadingScramble(true)
-    setScramble(await provider.current.next('3x3'))
-    setLoadingScramble(false)
-  }, [])
+   If the `setSettings` call in that effect trips
+   `react-hooks/set-state-in-effect`, resolve it the way the scramble mount
+   effect does — the rule objects to a bare synchronous `setState` in an effect
+   body, and this project does not accept blanket disables.
 
-  useEffect(() => {
-    void nextScramble()
-  }, [nextScramble])
+3. Turn the header into a row that holds the settings trigger:
 
-  // The scramble that was on screen during the attempt is the one recorded.
-  const onSolveComplete = useCallback(
-    async (result: SolveResult) => {
-      await session.record(result, scramble)
-      void nextScramble()
-    },
-    [nextScramble, scramble, session],
-  )
-
-  return (
-    <main className="mx-auto flex min-h-svh w-full max-w-4xl flex-col items-center gap-10 px-4 py-8">
+```tsx
       <header className="flex w-full items-center justify-between gap-4">
         <div>
           <h1 className="text-lg font-semibold">{t.appName}</h1>
@@ -3725,28 +3694,21 @@ export function TimerScreen() {
         </div>
         <SettingsDialog settings={settings} onChange={updateSettings} />
       </header>
-      <ScrambleBar
-        scramble={scramble}
-        loading={loadingScramble}
-        onRefresh={() => void nextScramble()}
-      />
+```
+
+4. Pass the settings into `TimerPanel`, keeping the `onSolveComplete` wiring
+   from Task 11:
+
+```tsx
       <TimerPanel
         config={{ keys: settings.keys, holdMs: HOLD_MS, inspectionMs: INSPECTION_MS }}
         hideTimeWhileSolving={settings.hideTimeWhileSolving}
         sounds={settings.sounds}
-        onSolveComplete={(result) => void onSolveComplete(result)}
+        onSolveComplete={(result) => void recordSolve(result)}
       />
-      <SessionStats stats={session.stats} />
-      <SolveList
-        solves={session.solves}
-        onPenalty={(id, penalty) => void session.setPenalty(id, penalty)}
-        onRemove={(id) => void session.remove(id)}
-        onClear={() => void session.clear()}
-      />
-    </main>
-  )
-}
 ```
+
+Leave everything else in the file as it is.
 
 - [ ] **Step 9: Verify in the browser**
 
