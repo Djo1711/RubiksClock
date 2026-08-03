@@ -12,20 +12,21 @@ const CubePreview = dynamic(
 export function ScrambleBar({
   scramble,
   loading,
+  error,
   onRefresh,
 }: {
   scramble: string
   loading: boolean
+  error: boolean
   onRefresh: () => void
 }) {
   const { t } = useI18n()
+  const text = loading ? t.scrambleLoading : error ? t.scrambleError : scramble
   return (
     <div className="flex w-full max-w-3xl flex-col items-center gap-4">
-      <p className="text-center font-mono text-lg leading-relaxed text-neutral-200">
-        {loading ? t.scrambleLoading : scramble}
-      </p>
+      <p className="text-center font-mono text-lg leading-relaxed text-neutral-200">{text}</p>
       <div className="flex items-center gap-6">
-        {scramble ? <CubePreview scramble={scramble} /> : null}
+        {!error && scramble ? <CubePreview scramble={scramble} /> : null}
         <Button variant="outline" onClick={onRefresh} disabled={loading}>
           {t.newScramble}
         </Button>

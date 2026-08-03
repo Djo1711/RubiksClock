@@ -11,11 +11,19 @@ export function TimerScreen() {
   const provider = useRef(createCubingScrambleProvider())
   const [scramble, setScramble] = useState('')
   const [loadingScramble, setLoadingScramble] = useState(true)
+  const [scrambleError, setScrambleError] = useState(false)
 
   const nextScramble = useCallback(async () => {
     setLoadingScramble(true)
-    setScramble(await provider.current.next('3x3'))
-    setLoadingScramble(false)
+    try {
+      const next = await provider.current.next('3x3')
+      setScramble(next)
+      setScrambleError(false)
+    } catch {
+      setScrambleError(true)
+    } finally {
+      setLoadingScramble(false)
+    }
   }, [])
 
   useEffect(() => {
@@ -24,12 +32,19 @@ export function TimerScreen() {
     // setState-calling callback directly from an effect body trips
     // react-hooks/set-state-in-effect. nextScramble itself is still used by
     // the refresh button and the solve-complete handler below.
-    void provider.current.next('3x3').then((next) => {
-      if (!cancelled) {
+    provider.current.next('3x3').then(
+      (next) => {
+        if (cancelled) return
         setScramble(next)
+        setScrambleError(false)
         setLoadingScramble(false)
-      }
-    })
+      },
+      () => {
+        if (cancelled) return
+        setScrambleError(true)
+        setLoadingScramble(false)
+      },
+    )
     return () => {
       cancelled = true
     }
@@ -44,6 +59,7 @@ export function TimerScreen() {
       <ScrambleBar
         scramble={scramble}
         loading={loadingScramble}
+        error={scrambleError}
         onRefresh={() => void nextScramble()}
       />
       <TimerPanel onSolveComplete={() => void nextScramble()} />

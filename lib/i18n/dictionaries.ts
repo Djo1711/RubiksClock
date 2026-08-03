@@ -24,6 +24,7 @@ export type Dictionary = {
   scramble: string
   newScramble: string
   scrambleLoading: string
+  scrambleError: string
   statsTitle: string
   best: string
   worst: string
@@ -80,6 +81,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
     scramble: 'Mélange',
     newScramble: 'Nouveau mélange',
     scrambleLoading: 'Génération du mélange…',
+    scrambleError: 'Impossible de générer un mélange. Réessaie.',
     statsTitle: 'Statistiques de la session',
     best: 'Meilleur',
     worst: 'Pire',
@@ -137,6 +139,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
     scramble: 'Scramble',
     newScramble: 'New scramble',
     scrambleLoading: 'Generating scramble…',
+    scrambleError: 'Could not generate a scramble. Try again.',
     statsTitle: 'Session statistics',
     best: 'Best',
     worst: 'Worst',
