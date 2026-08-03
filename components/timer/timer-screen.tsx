@@ -1,14 +1,27 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState, type RefObject } from 'react'
 import { useI18n } from '@/components/i18n-provider'
 import { ScrambleBar } from '@/components/scramble/scramble-bar'
 import { TimerPanel } from '@/components/timer/timer-panel'
 import { createCubingScrambleProvider } from '@/lib/scramble/cubing-provider'
+import type { ScrambleProvider } from '@/lib/scramble/types'
+
+/** Lazily creates the provider once, on first render, instead of on every
+ * render — safe even if the factory ever gains a side effect. Returns the
+ * ref itself rather than `.current`: the instance is only ever read later,
+ * outside of render, in effects and event handlers. */
+function useScrambleProviderRef(): RefObject<ScrambleProvider | null> {
+  const ref = useRef<ScrambleProvider | null>(null)
+  if (ref.current === null) {
+    ref.current = createCubingScrambleProvider()
+  }
+  return ref
+}
 
 export function TimerScreen() {
   const { t } = useI18n()
-  const provider = useRef(createCubingScrambleProvider())
+  const providerRef = useScrambleProviderRef()
   const [scramble, setScramble] = useState('')
   const [loadingScramble, setLoadingScramble] = useState(true)
   const [scrambleError, setScrambleError] = useState(false)
@@ -16,7 +29,7 @@ export function TimerScreen() {
   const nextScramble = useCallback(async () => {
     setLoadingScramble(true)
     try {
-      const next = await provider.current.next('3x3')
+      const next = await providerRef.current!.next('3x3')
       setScramble(next)
       setScrambleError(false)
     } catch {
@@ -24,7 +37,7 @@ export function TimerScreen() {
     } finally {
       setLoadingScramble(false)
     }
-  }, [])
+  }, [providerRef])
 
   useEffect(() => {
     let cancelled = false
@@ -32,7 +45,7 @@ export function TimerScreen() {
     // setState-calling callback directly from an effect body trips
     // react-hooks/set-state-in-effect. nextScramble itself is still used by
     // the refresh button and the solve-complete handler below.
-    provider.current.next('3x3').then(
+    providerRef.current!.next('3x3').then(
       (next) => {
         if (cancelled) return
         setScramble(next)
@@ -48,7 +61,7 @@ export function TimerScreen() {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [providerRef])
 
   return (
     <main className="mx-auto flex min-h-svh w-full max-w-4xl flex-col items-center gap-10 px-4 py-8">
