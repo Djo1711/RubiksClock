@@ -883,7 +883,7 @@ export function reduce(
 - [ ] **Step 4: Run the tests to verify they pass**
 
 Run: `pnpm test lib/timer/machine`
-Expected: PASS — 21 tests.
+Expected: PASS — 23 tests.
 
 - [ ] **Step 5: Run the whole suite and typecheck**
 
