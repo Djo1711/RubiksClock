@@ -49,17 +49,21 @@ delay.
 | State | Display | Trigger | Next state |
 |---|---|---|---|
 | `IDLE` | Prompt to hold the six keys | all six keys down | `ARMING_INSPECTION` |
-| `ARMING_INSPECTION` | Red, then green after `HOLD_MS` of continuous hold | all keys released after `HOLD_MS` | `INSPECTION` |
+| `ARMING_INSPECTION` | Red, then green after `HOLD_MS` of continuous hold | first key released, once green | `INSPECTION` |
 | | | any key released before `HOLD_MS` | `IDLE` |
 | `INSPECTION` | Countdown 15 → 0; amber 15–17 s (+2); red beyond 17 s (DNF) | all six keys down | `ARMING_SOLVE` |
 | | | `Escape` | `IDLE` |
-| `ARMING_SOLVE` | Red, then green after `HOLD_MS` | all keys released after `HOLD_MS` | `RUNNING` (penalty frozen) |
+| `ARMING_SOLVE` | Red, then green after `HOLD_MS` | first key released, once green | `RUNNING` (penalty frozen) |
 | | | any key released before `HOLD_MS` | `INSPECTION` (inspection clock never paused) |
 | `RUNNING` | Elapsed time, or a neutral marker if "hide time while solving" is on | `Space` | `STOPPED` |
 | | | `Escape` | `IDLE` (attempt discarded) |
 | `STOPPED` | Result, penalty chips `+2` / `DNF`, session stats | all six keys down | `ARMING_INSPECTION` (next attempt) |
 
 Additional rules:
+
+The solve starts on the **first** key released once the green light is on, not
+on the last: on a Stackmat, lifting either hand starts the clock. Requiring all
+six releases would let a competitor lift one hand early for free.
 
 - `Escape` returns to `IDLE` from any state, discarding the attempt in progress.
 - The window losing focus, or the tab becoming hidden, resets to `IDLE`. An
