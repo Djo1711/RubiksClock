@@ -1,8 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { effectiveMs, inspectionPenalty } from './penalties'
 
-// @vitest-environment node
-
 describe('inspectionPenalty', () => {
   it('returns none well inside the 15 second limit', () => {
     expect(inspectionPenalty(9_000)).toBe('none')
