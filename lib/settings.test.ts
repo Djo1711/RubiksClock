@@ -1,5 +1,11 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { defaultSettings, loadSettings, saveSettings, SETTINGS_STORAGE_KEY } from './settings'
+import {
+  defaultSettings,
+  getSettingsSnapshot,
+  loadSettings,
+  saveSettings,
+  SETTINGS_STORAGE_KEY,
+} from './settings'
 
 describe('settings', () => {
   beforeEach(() => {
@@ -27,5 +33,26 @@ describe('settings', () => {
       JSON.stringify({ ...defaultSettings, keys: ['KeyQ', 'KeyQ'] }),
     )
     expect(loadSettings().keys).toEqual(defaultSettings.keys)
+  })
+})
+
+describe('getSettingsSnapshot', () => {
+  beforeEach(() => {
+    localStorage.clear()
+  })
+
+  // This is the property that prevents useSyncExternalStore from re-rendering
+  // forever: loadSettings() builds a fresh object every call, so the
+  // snapshot must be cached rather than recomputed on every read.
+  it('returns the same object reference across consecutive calls when nothing changed', () => {
+    const first = getSettingsSnapshot()
+    const second = getSettingsSnapshot()
+    expect(second).toBe(first)
+  })
+
+  it('reflects a saveSettings call immediately, without a fresh load', () => {
+    const next = { ...defaultSettings, sounds: false }
+    saveSettings(next)
+    expect(getSettingsSnapshot()).toBe(next)
   })
 })

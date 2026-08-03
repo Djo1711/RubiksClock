@@ -8,10 +8,10 @@ import { SolveList } from '@/components/session/solve-list'
 import { SettingsDialog } from '@/components/settings/settings-dialog'
 import { TimerPanel } from '@/components/timer/timer-panel'
 import { useSession } from '@/hooks/use-session'
+import { useSettings } from '@/hooks/use-settings'
 import type { SolveResult } from '@/hooks/useSpeedTimer'
 import { createCubingScrambleProvider } from '@/lib/scramble/cubing-provider'
 import type { ScrambleProvider } from '@/lib/scramble/types'
-import { defaultSettings, loadSettings, saveSettings, type Settings } from '@/lib/settings'
 import { HOLD_MS } from '@/lib/timer/machine'
 import { INSPECTION_MS } from '@/lib/timer/penalties'
 
@@ -35,20 +35,7 @@ export function TimerScreen() {
   const [scramble, setScramble] = useState('')
   const [loadingScramble, setLoadingScramble] = useState(true)
   const [scrambleError, setScrambleError] = useState(false)
-  const [settings, setSettings] = useState<Settings>(defaultSettings)
-
-  useEffect(() => {
-    // Deferred to a microtask rather than called synchronously in the effect
-    // body, the same way the scramble mount effect avoids a bare setState
-    // call: react-hooks/set-state-in-effect flags a direct top-level
-    // setState statement in an effect, not one nested inside a callback.
-    Promise.resolve().then(() => setSettings(loadSettings()))
-  }, [])
-
-  const updateSettings = useCallback((next: Settings) => {
-    setSettings(next)
-    saveSettings(next)
-  }, [])
+  const { settings, updateSettings } = useSettings()
 
   const nextScramble = useCallback(async () => {
     setLoadingScramble(true)

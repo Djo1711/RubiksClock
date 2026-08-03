@@ -48,9 +48,48 @@ export function loadSettings(storage: Storage | null = defaultStorage()): Settin
   }
 }
 
+/** Dispatched on this tab after saveSettings writes to localStorage, so the
+ * store subscription can react to same-tab changes (the native `storage`
+ * event only fires in other tabs). Mirrors i18n-provider's locale store. */
+export const SETTINGS_CHANGE_EVENT = 'rubiksclock:settings-change'
+
+// useSyncExternalStore's getSnapshot must return a referentially stable
+// value across calls when nothing changed, or React re-renders forever.
+// loadSettings() builds a fresh object every call, so the store caches the
+// last parsed value and only recomputes after a change is observed.
+let cachedSettings: Settings | null = null
+
+export function getSettingsSnapshot(): Settings {
+  cachedSettings ??= loadSettings()
+  return cachedSettings
+}
+
+// The server always renders the defaults, so the first client render must
+// agree — otherwise hydration mismatches on settings-derived markup.
+export function getServerSettingsSnapshot(): Settings {
+  return defaultSettings
+}
+
+export function subscribeSettings(listener: () => void): () => void {
+  const onChange = () => {
+    cachedSettings = null
+    listener()
+  }
+  window.addEventListener('storage', onChange)
+  window.addEventListener(SETTINGS_CHANGE_EVENT, onChange)
+  return () => {
+    window.removeEventListener('storage', onChange)
+    window.removeEventListener(SETTINGS_CHANGE_EVENT, onChange)
+  }
+}
+
 export function saveSettings(
   settings: Settings,
   storage: Storage | null = defaultStorage(),
 ): void {
   storage?.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings))
+  cachedSettings = settings
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event(SETTINGS_CHANGE_EVENT))
+  }
 }
