@@ -56,7 +56,9 @@ export function useSpeedTimer(options: UseSpeedTimerOptions = {}) {
   const onSolveCompleteRef = useRef(options.onSolveComplete)
   onSolveCompleteRef.current = options.onSolveComplete
 
-  const clock = useCallback(() => (nowRef.current ?? performance.now)(), [])
+  // performance.now must stay bound to performance: detaching it throws
+  // "Illegal invocation" in the browser and ERR_INVALID_ARG_TYPE under SSR.
+  const clock = useCallback(() => nowRef.current?.() ?? performance.now(), [])
 
   const dispatch = useCallback((event: TimerEvent) => {
     setState((current) => reduce(current, event, configRef.current))
