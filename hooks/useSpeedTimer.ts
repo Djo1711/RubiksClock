@@ -46,19 +46,31 @@ function shouldIgnore(target: EventTarget | null): boolean {
 
 export function useSpeedTimer(options: UseSpeedTimerOptions = {}) {
   const config = options.config ?? defaultConfig
+  const optionsNow = options.now
   const [state, setState] = useState<TimerState>(initialState)
   const [now, setNow] = useState(0)
 
   const configRef = useRef(config)
-  configRef.current = config
-  const nowRef = useRef(options.now)
-  nowRef.current = options.now
+  const nowRef = useRef(optionsNow)
   const onSolveCompleteRef = useRef(options.onSolveComplete)
-  onSolveCompleteRef.current = options.onSolveComplete
+
+  // Refs must not be written during render (react-hooks/refs); commit the
+  // latest values in an effect that runs on every render instead, before the
+  // listener effects below so they still see up-to-date config/clock/callback.
+  useEffect(() => {
+    configRef.current = config
+    nowRef.current = optionsNow
+    onSolveCompleteRef.current = options.onSolveComplete
+  })
 
   // performance.now must stay bound to performance: detaching it throws
   // "Illegal invocation" in the browser and ERR_INVALID_ARG_TYPE under SSR.
   const clock = useCallback(() => nowRef.current?.() ?? performance.now(), [])
+
+  // The `now` value returned below needs the same fallback, but it is read
+  // during render, so it goes through optionsNow directly instead of
+  // nowRef — reading a ref during render is disallowed (react-hooks/refs).
+  const freshNow = useCallback(() => optionsNow?.() ?? performance.now(), [optionsNow])
 
   const dispatch = useCallback((event: TimerEvent) => {
     setState((current) => reduce(current, event, configRef.current))
@@ -144,7 +156,7 @@ export function useSpeedTimer(options: UseSpeedTimerOptions = {}) {
     // While counting, this is the frame loop's latest tick. Otherwise it is a
     // fresh clock read, so never combine it with solveElapsedMs after a stop —
     // read the frozen state.rawMs instead.
-    now: LIVE_STATUSES.has(state.status) ? now : clock(),
+    now: LIVE_STATUSES.has(state.status) ? now : freshNow(),
     armed: isArmed(state, now, config),
     press,
     release,
