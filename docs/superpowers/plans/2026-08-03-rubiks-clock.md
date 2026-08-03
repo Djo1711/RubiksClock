@@ -4112,7 +4112,8 @@ tree tracking `origin/main`.
 ## Deployment
 
 Vercel deploys this repository with no configuration: import
-`Djo1711/RubiksClock`, framework preset Next.js, no environment variables. The
-app has no server dependencies — every route is prerendered and the timer runs
-entirely in the browser. Environment variables arrive only with the accounts
-milestone, as documented in `docs/ROADMAP.md`.
+`Djo1711/RubiksClock`, framework preset Next.js, no environment variables. Every
+page is prerendered and the timer runs entirely in the browser; the one server
+dependency is the `/api/scramble` Route Handler, which Vercel provisions as a
+serverless function automatically. Environment variables arrive only with the
+accounts milestone, as documented in `docs/ROADMAP.md`.
