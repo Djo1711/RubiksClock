@@ -22,11 +22,19 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: `Unknown puzzle: ${puzzle ?? '(missing)'}` }, { status: 400 })
   }
 
-  const { randomScrambleForEvent } = await import('cubing/scramble')
-  const alg = await randomScrambleForEvent(EVENT_IDS[puzzle])
+  try {
+    const { randomScrambleForEvent } = await import('cubing/scramble')
+    const alg = await randomScrambleForEvent(EVENT_IDS[puzzle])
 
-  return NextResponse.json(
-    { scramble: alg.toString() },
-    { headers: { 'Cache-Control': 'no-store' } },
-  )
+    return NextResponse.json(
+      { scramble: alg.toString() },
+      { headers: { 'Cache-Control': 'no-store' } },
+    )
+  } catch (error) {
+    console.error('Failed to generate a scramble', error)
+    return NextResponse.json(
+      { error: 'Failed to generate a scramble' },
+      { status: 500, headers: { 'Cache-Control': 'no-store' } },
+    )
+  }
 }
