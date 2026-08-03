@@ -21,7 +21,7 @@ export function TouchPads({
           key={index}
           type="button"
           aria-label={index === 0 ? t.touchPadLeft : t.touchPadRight}
-          className="h-28 rounded-xl border border-neutral-700 bg-neutral-900 active:border-(--color-state-ready) active:bg-(--color-state-ready)/15"
+          className="h-28 rounded-xl border border-neutral-500 bg-neutral-900 active:border-(--color-state-ready) active:bg-(--color-state-ready)/15"
           onPointerDown={(event) => {
             event.preventDefault()
             hand.forEach(onPress)

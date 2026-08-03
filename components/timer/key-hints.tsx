@@ -31,7 +31,7 @@ export function KeyHints({
               className={`flex h-9 w-9 items-center justify-center rounded-md border font-mono text-sm transition-colors ${
                 held.includes(code)
                   ? 'border-(--color-state-ready) bg-(--color-state-ready)/15 text-(--color-state-ready)'
-                  : 'border-neutral-700 text-neutral-500'
+                  : 'border-neutral-500 text-neutral-500'
               }`}
             >
               {keyLabel(code)}
