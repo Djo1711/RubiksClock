@@ -9,6 +9,16 @@ import { useEffect, useRef } from 'react'
 export function CubePreview({ scramble }: { scramble: string }) {
   const host = useRef<HTMLDivElement>(null)
   const player = useRef<(HTMLElement & { alg: string }) | null>(null)
+  const latestScramble = useRef(scramble)
+
+  // Declared before the player-creation effect below so it commits first:
+  // effects at the same level run in declaration order, so by the time the
+  // player-creation effect's async import resolves, this ref always holds
+  // whatever scramble was current as of the latest render — not whichever
+  // scramble happened to be in scope when that effect was first created.
+  useEffect(() => {
+    latestScramble.current = scramble
+  }, [scramble])
 
   useEffect(() => {
     let cancelled = false
@@ -20,7 +30,7 @@ export function CubePreview({ scramble }: { scramble: string }) {
         background: 'none',
         controlPanel: 'none',
         hintFacelets: 'none',
-        alg: scramble,
+        alg: latestScramble.current,
       })
       instance.style.width = '100%'
       instance.style.height = '100%'
@@ -30,8 +40,6 @@ export function CubePreview({ scramble }: { scramble: string }) {
     return () => {
       cancelled = true
     }
-    // The player is created once; the effect below keeps its alg in sync.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {
