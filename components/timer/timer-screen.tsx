@@ -70,13 +70,9 @@ export function TimerScreen() {
 
   const recordSolve = useCallback(
     async (result: SolveResult) => {
-      try {
-        await session.record(result, scramble)
-      } catch (error) {
-        // The solve stays on screen; only persistence failed (quota, private
-        // browsing). Surfacing this properly belongs with the accounts work.
-        console.error('Could not save the solve', error)
-      }
+      // A failed save is handled inside useSession: the solve stays on
+      // screen either way, so the scramble always advances.
+      await session.record(result, scramble)
       await nextScramble()
     },
     [nextScramble, scramble, session],

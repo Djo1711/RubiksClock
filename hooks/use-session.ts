@@ -15,42 +15,63 @@ export function useSession(repository?: SolveRepository) {
 
   const [solves, setSolves] = useState<Solve[]>([])
 
-  const refresh = useCallback(async () => {
-    setSolves(await store.list())
+  // Every mutation funnels through here so a failed write can never become an
+  // unhandled rejection, and the rendered state always re-reads from storage
+  // afterwards — even when the write failed, so the UI matches what persisted.
+  const mutate = useCallback(
+    async (operation: () => Promise<void>, description: string) => {
+      try {
+        await operation()
+      } catch (error) {
+        console.error(`Could not ${description}`, error)
+      }
+      try {
+        setSolves(await store.list())
+      } catch (error) {
+        console.error('Could not read the session', error)
+      }
+    },
+    [store],
+  )
+
+  // Guarded the same way as every other mutation: a failed initial read must
+  // not become an unhandled rejection either.
+  const load = useCallback(async () => {
+    try {
+      setSolves(await store.list())
+    } catch (error) {
+      console.error('Could not load the session', error)
+    }
   }, [store])
 
   useEffect(() => {
-    void refresh()
-  }, [refresh])
+    void load()
+  }, [load])
 
   const record = useCallback(
     async (result: SolveResult, scramble: string) => {
-      await store.add(createSolve({ ...result, scramble }))
-      await refresh()
+      await mutate(() => store.add(createSolve({ ...result, scramble })), 'save the solve')
     },
-    [refresh, store],
+    [mutate, store],
   )
 
   const setPenalty = useCallback(
     async (id: string, penalty: Penalty) => {
-      await store.updatePenalty(id, penalty)
-      await refresh()
+      await mutate(() => store.updatePenalty(id, penalty), 'update the penalty')
     },
-    [refresh, store],
+    [mutate, store],
   )
 
   const remove = useCallback(
     async (id: string) => {
-      await store.remove(id)
-      await refresh()
+      await mutate(() => store.remove(id), 'delete the solve')
     },
-    [refresh, store],
+    [mutate, store],
   )
 
   const clear = useCallback(async () => {
-    await store.clear()
-    await refresh()
-  }, [refresh, store])
+    await mutate(() => store.clear(), 'clear the session')
+  }, [mutate, store])
 
   const stats = useMemo(() => sessionStats(solves), [solves])
 
