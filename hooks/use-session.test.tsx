@@ -1,5 +1,6 @@
 import { act, renderHook, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it } from 'vitest'
+import { createSolve } from '@/lib/storage'
 import { createLocalSolveRepository } from '@/lib/storage/local-repository'
 import { useSession } from './use-session'
 
@@ -8,10 +9,18 @@ describe('useSession', () => {
     localStorage.clear()
   })
 
-  it('loads the stored solves on mount', async () => {
+  it('loads solves that were already stored, oldest first', async () => {
     const repository = createLocalSolveRepository()
+    await repository.add(
+      createSolve({ scramble: "R U R' U'", rawMs: 12_340, inspectionMs: 9_000, penalty: 'none' }),
+    )
+    await repository.add(
+      createSolve({ scramble: "L D L' D'", rawMs: 11_110, inspectionMs: 8_000, penalty: 'none' }),
+    )
     const { result } = renderHook(() => useSession(repository))
-    await waitFor(() => expect(result.current.solves).toEqual([]))
+    await waitFor(() => expect(result.current.solves).toHaveLength(2))
+    expect(result.current.solves.map((solve) => solve.rawMs)).toEqual([12_340, 11_110])
+    expect(result.current.stats.best).toBe(11_110)
   })
 
   it('records a solve with its scramble and updates the statistics', async () => {
