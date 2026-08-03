@@ -6,7 +6,7 @@
 
 **Architecture:** All timing logic lives in pure, dependency-free modules (`reduce(state, event, config)` for the state machine, pure functions for penalties, formatting and statistics) that are unit-tested without a DOM or a clock. Exactly one module (`hooks/useSpeedTimer.ts`) translates DOM keyboard events and `requestAnimationFrame` into machine events. The UI reads and writes solves only through a `SolveRepository` interface, whose localStorage implementation ships now and whose Supabase implementation is stubbed for the accounts milestone.
 
-**Tech Stack:** Next.js 15 (App Router), TypeScript, Tailwind CSS v4, shadcn/ui, `cubing.js` (random-state scrambles + 3D preview), Vitest + Testing Library, pnpm.
+**Tech Stack:** Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS v4, shadcn/ui (Base UI primitives), `cubing.js` (random-state scrambles + 3D preview), Vitest 4 + Testing Library, pnpm.
 
 ## Global Constraints
 
@@ -115,10 +115,10 @@ next-env.d.ts
 pnpm add -D vitest @vitejs/plugin-react jsdom @testing-library/react @testing-library/user-event
 ```
 
-Create `vitest.config.ts`:
+Create `vitest.config.mts` (the `.mts` extension keeps Vite's native config
+loader from warning about ESM syntax in a CommonJS-loaded file):
 
 ```ts
-import path from 'node:path'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vitest/config'
 
@@ -130,7 +130,7 @@ export default defineConfig({
     include: ['{app,components,hooks,lib}/**/*.test.{ts,tsx}'],
   },
   resolve: {
-    alias: { '@': path.resolve(__dirname, '.') },
+    alias: { '@': import.meta.dirname },
   },
 })
 ```

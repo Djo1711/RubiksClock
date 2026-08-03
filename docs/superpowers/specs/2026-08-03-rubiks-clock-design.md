@@ -129,7 +129,7 @@ the average a DNF.
 
 ## 5. Stack
 
-Next.js 15 (App Router), TypeScript, Tailwind CSS v4, shadcn/ui, pnpm. The
+Next.js 16 (App Router), TypeScript, Tailwind CSS v4, shadcn/ui, pnpm. The
 timer is entirely client-side, so the app deploys as static output on Vercel
 with no server dependency.
 
