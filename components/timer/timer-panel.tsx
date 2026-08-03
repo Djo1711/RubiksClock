@@ -31,7 +31,7 @@ export function TimerPanel({
       case 'idle':
       case 'arming':
       case 'ready':
-        return state.status === 'armingSolve' || state.status === 'inspection'
+        return state.status === 'armingSolve'
           ? formatCountdown(inspectionRemainingMs(state, now, config))
           : '0.00'
       case 'inspection':
