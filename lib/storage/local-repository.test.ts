@@ -66,6 +66,26 @@ describe('createLocalSolveRepository', () => {
     const solves = await createLocalSolveRepository().list()
     expect(solves).toHaveLength(1)
   })
+
+  it('drops an entry whose puzzle is not a known puzzle', async () => {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify([{ ...attempt(12_340), puzzle: 'nonsense' }, attempt(11_110)]),
+    )
+    const solves = await createLocalSolveRepository().list()
+    expect(solves).toHaveLength(1)
+    expect(solves[0].rawMs).toBe(11_110)
+  })
+
+  it('is inert when constructed without storage, as on the server', async () => {
+    const repository = createLocalSolveRepository(null)
+    await expect(repository.list()).resolves.toEqual([])
+    await expect(repository.add(attempt(12_340))).resolves.toBeUndefined()
+    await expect(repository.updatePenalty('missing', 'plus2')).resolves.toBeUndefined()
+    await expect(repository.remove('missing')).resolves.toBeUndefined()
+    await expect(repository.clear()).resolves.toBeUndefined()
+    await expect(repository.list()).resolves.toEqual([])
+  })
 })
 
 describe('createSolve', () => {

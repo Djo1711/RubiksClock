@@ -47,6 +47,7 @@ export function isSolve(value: unknown): value is Solve {
   return (
     typeof candidate.id === 'string' &&
     typeof candidate.createdAt === 'string' &&
+    candidate.puzzle === '3x3' &&
     typeof candidate.scramble === 'string' &&
     typeof candidate.rawMs === 'number' &&
     typeof candidate.inspectionMs === 'number' &&
