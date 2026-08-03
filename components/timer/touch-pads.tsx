@@ -1,5 +1,7 @@
 'use client'
 
+import { useI18n } from '@/components/i18n-provider'
+
 export function TouchPads({
   keys,
   onPress,
@@ -9,6 +11,7 @@ export function TouchPads({
   onPress: (code: string) => void
   onRelease: (code: string) => void
 }) {
+  const { t } = useI18n()
   const half = Math.ceil(keys.length / 2)
   const hands = [keys.slice(0, half), keys.slice(half)]
   return (
@@ -17,7 +20,7 @@ export function TouchPads({
         <button
           key={index}
           type="button"
-          aria-label={index === 0 ? 'Left hand pad' : 'Right hand pad'}
+          aria-label={index === 0 ? t.touchPadLeft : t.touchPadRight}
           className="h-28 rounded-xl border border-neutral-700 bg-neutral-900 active:border-(--color-state-ready) active:bg-(--color-state-ready)/15"
           onPointerDown={(event) => {
             event.preventDefault()

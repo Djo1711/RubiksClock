@@ -11,6 +11,8 @@ export type Dictionary = {
   navSignIn: string
   idleHint: string
   armingHint: string
+  touchPadLeft: string
+  touchPadRight: string
   readyHint: string
   releaseHint: string
   inspectionLabel: string
@@ -65,6 +67,8 @@ export const dictionaries: Record<Locale, Dictionary> = {
     navSignIn: 'Se connecter',
     idleHint: 'Maintiens les six touches des deux mains',
     armingHint: 'Continue de maintenir…',
+    touchPadLeft: 'Zone main gauche',
+    touchPadRight: 'Zone main droite',
     readyHint: 'Prêt — relâche pour lancer l’inspection',
     releaseHint: 'Prêt — relâche pour démarrer le solve',
     inspectionLabel: 'Inspection',
@@ -120,6 +124,8 @@ export const dictionaries: Record<Locale, Dictionary> = {
     navSignIn: 'Sign in',
     idleHint: 'Hold the six keys with both hands',
     armingHint: 'Keep holding…',
+    touchPadLeft: 'Left hand pad',
+    touchPadRight: 'Right hand pad',
     readyHint: 'Ready — release to start inspection',
     releaseHint: 'Ready — release to start the solve',
     inspectionLabel: 'Inspection',
