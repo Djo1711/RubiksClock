@@ -2,12 +2,19 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-@custom-variant dark (&:is(.dark *));
+/*
+ * RubiksClock has a single, dark theme: the timer is meant to be read
+ * peripherally in a dim room, and the state colours below are tuned against one
+ * background only. So the `dark:` variant is always active rather than gated on
+ * a `.dark` ancestor that never appears.
+ */
+@custom-variant dark (&);
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
+  /* Geist for labels, Geist Mono for every numeral: both loaded in app/layout.tsx. */
+  --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --font-heading: var(--font-sans);
   --color-sidebar-ring: var(--sidebar-ring);
@@ -48,42 +55,45 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-:root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+/*
+ * The timer's state ramp. One loud element on a silent field: everything else on
+ * the screen is neutral grey, so these six are the only saturated colours in the
+ * app and they read at a glance without being looked at.
+ *
+ * Every value is stated in OKLCH so the ramp holds a deliberate perceptual
+ * lightness order, and every one clears WCAG AA (4.5:1) against
+ * --background (oklch(0.145 0 0) = #0a0a0a). Ratios below were measured off the
+ * colours the browser actually rendered, not off the source values:
+ *
+ *   idle        #f3f3f3   17.88:1   AAA
+ *   arming      #f74a46    5.65:1   AA   (AAA at the display's large size)
+ *   ready       #43de8a   11.34:1   AAA
+ *   inspection  #63b9fe    9.32:1   AAA
+ *   warn        #fabf2e   11.78:1   AAA
+ *   danger      #ff645a    6.81:1   AA   (AAA at the display's large size)
+ *
+ * Colour is never the only signal: every phase also renders its hint text.
+ */
+@theme {
+  /* Neutral. Idle, running, and the stopped result. */
+  --color-state-idle: oklch(0.965 0 0);
+  /* Held, but the hold is not yet long enough — the Stackmat's red light. */
+  --color-state-arming: oklch(0.655 0.21 26);
+  /* The hold is valid: release now. The Stackmat's green light. */
+  --color-state-ready: oklch(0.8 0.175 155);
+  /* Inspection running, still inside the 15 s allowance. */
+  --color-state-inspection: oklch(0.76 0.13 245);
+  /* Past 15 s: a +2 is coming. */
+  --color-state-warn: oklch(0.835 0.16 84);
+  /* Past 17 s: the attempt is a DNF. */
+  --color-state-danger: oklch(0.7 0.19 27);
 }
 
+/* The dark theme is the only theme, so it lives on :root rather than on .dark. */
+:root,
 .dark {
+  color-scheme: dark;
+  --radius: 0.625rem;
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);
@@ -126,5 +136,15 @@
   }
   html {
     @apply font-sans;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
   }
 }
