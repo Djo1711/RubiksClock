@@ -26,6 +26,7 @@ function useScrambleProviderRef(): RefObject<ScrambleProvider | null> {
 export function TimerScreen() {
   const { t } = useI18n()
   const session = useSession()
+  const { record } = session
   const providerRef = useScrambleProviderRef()
   const [scramble, setScramble] = useState('')
   const [loadingScramble, setLoadingScramble] = useState(true)
@@ -72,10 +73,10 @@ export function TimerScreen() {
     async (result: SolveResult) => {
       // A failed save is handled inside useSession: the solve stays on
       // screen either way, so the scramble always advances.
-      await session.record(result, scramble)
+      await record(result, scramble)
       await nextScramble()
     },
-    [nextScramble, scramble, session],
+    [nextScramble, record, scramble],
   )
 
   return (
