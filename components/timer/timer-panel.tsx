@@ -8,6 +8,7 @@ import { TouchPads } from '@/components/timer/touch-pads'
 import { useSpeedTimer, type SolveResult } from '@/hooks/useSpeedTimer'
 import { createBeeper } from '@/lib/audio'
 import { formatCountdown, formatMs, formatResult } from '@/lib/format'
+import { CUES, dueCues } from '@/lib/timer/cues'
 import {
   defaultConfig,
   inspectionElapsedMs,
@@ -15,9 +16,6 @@ import {
   solveElapsedMs,
   type TimerConfig,
 } from '@/lib/timer/machine'
-
-/** WCA A3b1 and A3b2: the judge warns at 8 and at 12 seconds. */
-const CUES = [8_000, 12_000] as const
 
 export function TimerPanel({
   config = defaultConfig,
@@ -45,13 +43,12 @@ export function TimerPanel({
       fired.current.clear()
       return
     }
-    CUES.forEach((threshold, index) => {
-      if (inspectionElapsed < threshold || fired.current.has(threshold)) return
+    for (const threshold of dueCues(inspectionElapsed, fired.current)) {
       fired.current.add(threshold)
-      if (!sounds) return
+      if (!sounds) continue
       beeper.current ??= createBeeper()
-      beeper.current.beep(index + 1)
-    })
+      beeper.current.beep(CUES.indexOf(threshold) + 1)
+    }
   }, [inspecting, inspectionElapsed, sounds])
 
   const value = (() => {
