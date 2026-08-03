@@ -2534,7 +2534,7 @@ EOF
 
 **Files:**
 - Create: `lib/scramble/types.ts`, `lib/scramble/cubing-provider.ts`, `components/scramble/scramble-bar.tsx`, `components/scramble/cube-preview.tsx`
-- Modify: `app/page.tsx`
+- Modify: `components/timer/timer-screen.tsx`
 - Test: `lib/scramble/types.test.ts`
 
 **Interfaces:**
@@ -2799,7 +2799,7 @@ EOF
 
 **Files:**
 - Create: `hooks/use-session.ts`, `components/session/session-stats.tsx`, `components/session/solve-list.tsx`
-- Modify: `app/page.tsx`
+- Modify: `components/timer/timer-screen.tsx`
 - Test: `hooks/use-session.test.tsx`
 
 **Interfaces:**
@@ -3109,10 +3109,8 @@ export function SolveList({
       )}
       {solves.length > 0 ? (
         <Dialog open={confirming} onOpenChange={setConfirming}>
-          <DialogTrigger asChild>
-            <Button variant="outline" size="sm" className="mt-4">
-              {t.clearSession}
-            </Button>
+          <DialogTrigger render={<Button variant="outline" size="sm" className="mt-4" />}>
+            {t.clearSession}
           </DialogTrigger>
           <DialogContent data-timer-ignore>
             <DialogHeader>
@@ -3567,9 +3565,7 @@ export function SettingsDialog({
 
   return (
     <Dialog>
-      <DialogTrigger asChild>
-        <Button variant="outline">{t.settings}</Button>
-      </DialogTrigger>
+      <DialogTrigger render={<Button variant="outline" />}>{t.settings}</DialogTrigger>
       <DialogContent data-timer-ignore className="space-y-6">
         <DialogHeader>
           <DialogTitle>{t.settings}</DialogTitle>
