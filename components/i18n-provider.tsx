@@ -1,6 +1,13 @@
 'use client'
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useSyncExternalStore,
+} from 'react'
 import {
   dictionaries,
   isLocale,
@@ -17,19 +24,34 @@ type I18nValue = {
 
 const I18nContext = createContext<I18nValue | null>(null)
 
-export function I18nProvider({ children }: { children: React.ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>('fr')
+/** Dispatched on this tab after setLocale writes to localStorage, so the
+ * store subscription can react to same-tab changes (the native `storage`
+ * event only fires in other tabs). */
+const LOCALE_CHANGE_EVENT = 'rubiksclock:locale-change'
 
-  // Resolve the stored or browser locale after mount, so the server-rendered
-  // markup and the first client render agree.
-  useEffect(() => {
-    const stored = window.localStorage.getItem(LOCALE_STORAGE_KEY)
-    if (isLocale(stored)) {
-      setLocaleState(stored)
-      return
-    }
-    setLocaleState(navigator.language.toLowerCase().startsWith('fr') ? 'fr' : 'en')
-  }, [])
+function getSnapshot(): Locale {
+  const stored = window.localStorage.getItem(LOCALE_STORAGE_KEY)
+  if (isLocale(stored)) return stored
+  return navigator.language.toLowerCase().startsWith('fr') ? 'fr' : 'en'
+}
+
+// The server always renders 'fr', so the first client render must agree —
+// otherwise hydration mismatches on the locale-derived markup.
+function getServerSnapshot(): Locale {
+  return 'fr'
+}
+
+function subscribe(onStoreChange: () => void) {
+  window.addEventListener('storage', onStoreChange)
+  window.addEventListener(LOCALE_CHANGE_EVENT, onStoreChange)
+  return () => {
+    window.removeEventListener('storage', onStoreChange)
+    window.removeEventListener(LOCALE_CHANGE_EVENT, onStoreChange)
+  }
+}
+
+export function I18nProvider({ children }: { children: React.ReactNode }) {
+  const locale = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot)
 
   useEffect(() => {
     document.documentElement.lang = locale
@@ -37,7 +59,7 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
 
   const setLocale = useCallback((next: Locale) => {
     window.localStorage.setItem(LOCALE_STORAGE_KEY, next)
-    setLocaleState(next)
+    window.dispatchEvent(new Event(LOCALE_CHANGE_EVENT))
   }, [])
 
   const value = useMemo<I18nValue>(
