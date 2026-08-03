@@ -1106,7 +1106,7 @@ export function sessionStats(attempts: Attempt[]): SessionStats {
 - [ ] **Step 4: Run the tests to verify they pass**
 
 Run: `pnpm test lib/stats`
-Expected: PASS — 15 tests.
+Expected: PASS — 14 tests.
 
 - [ ] **Step 5: Commit**
 
