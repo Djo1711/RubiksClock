@@ -139,6 +139,9 @@ export function useSpeedTimer(options: UseSpeedTimerOptions = {}) {
 
   return {
     state,
+    // While counting, this is the frame loop's latest tick. Otherwise it is a
+    // fresh clock read, so never combine it with solveElapsedMs after a stop —
+    // read the frozen state.rawMs instead.
     now: LIVE_STATUSES.has(state.status) ? now : clock(),
     armed: isArmed(state, now, config),
     press,

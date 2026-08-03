@@ -125,4 +125,26 @@ describe('useSpeedTimer', () => {
     })
     expect(view.result.current.state.status).toBe('inspection')
   })
+
+  it('publishes a fresh now from the animation frame loop while counting', async () => {
+    const { view, advance, holdAll } = setup()
+    holdAll()
+    expect(view.result.current.now).toBe(0)
+    expect(view.result.current.armed).toBe(false)
+    advance(HOLD_MS)
+    // Two frames: the loop's own callback runs before one scheduled here.
+    await act(async () => {
+      await new Promise((resolve) => requestAnimationFrame(() => resolve(null)))
+      await new Promise((resolve) => requestAnimationFrame(() => resolve(null)))
+    })
+    expect(view.result.current.now).toBe(HOLD_MS)
+    expect(view.result.current.armed).toBe(true)
+  })
+
+  it('does not schedule animation frames while idle', () => {
+    const scheduled = vi.spyOn(globalThis, 'requestAnimationFrame')
+    setup()
+    expect(scheduled).not.toHaveBeenCalled()
+    scheduled.mockRestore()
+  })
 })
