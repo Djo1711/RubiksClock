@@ -3,7 +3,11 @@
 import { useCallback, useEffect, useRef, useState, type RefObject } from 'react'
 import { useI18n } from '@/components/i18n-provider'
 import { ScrambleBar } from '@/components/scramble/scramble-bar'
+import { SessionStats } from '@/components/session/session-stats'
+import { SolveList } from '@/components/session/solve-list'
 import { TimerPanel } from '@/components/timer/timer-panel'
+import { useSession } from '@/hooks/use-session'
+import type { SolveResult } from '@/hooks/useSpeedTimer'
 import { createCubingScrambleProvider } from '@/lib/scramble/cubing-provider'
 import type { ScrambleProvider } from '@/lib/scramble/types'
 
@@ -21,6 +25,7 @@ function useScrambleProviderRef(): RefObject<ScrambleProvider | null> {
 
 export function TimerScreen() {
   const { t } = useI18n()
+  const session = useSession()
   const providerRef = useScrambleProviderRef()
   const [scramble, setScramble] = useState('')
   const [loadingScramble, setLoadingScramble] = useState(true)
@@ -63,6 +68,20 @@ export function TimerScreen() {
     }
   }, [providerRef])
 
+  const recordSolve = useCallback(
+    async (result: SolveResult) => {
+      try {
+        await session.record(result, scramble)
+      } catch (error) {
+        // The solve stays on screen; only persistence failed (quota, private
+        // browsing). Surfacing this properly belongs with the accounts work.
+        console.error('Could not save the solve', error)
+      }
+      await nextScramble()
+    },
+    [nextScramble, scramble, session],
+  )
+
   return (
     <main className="mx-auto flex min-h-svh w-full max-w-4xl flex-col items-center gap-10 px-4 py-8">
       <header className="w-full">
@@ -75,7 +94,14 @@ export function TimerScreen() {
         error={scrambleError}
         onRefresh={() => void nextScramble()}
       />
-      <TimerPanel onSolveComplete={() => void nextScramble()} />
+      <TimerPanel onSolveComplete={(result) => void recordSolve(result)} />
+      <SessionStats stats={session.stats} />
+      <SolveList
+        solves={session.solves}
+        onPenalty={(id, penalty) => void session.setPenalty(id, penalty)}
+        onRemove={(id) => void session.remove(id)}
+        onClear={() => void session.clear()}
+      />
     </main>
   )
 }
