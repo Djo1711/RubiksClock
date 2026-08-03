@@ -5,11 +5,15 @@ import { useI18n } from '@/components/i18n-provider'
 import { ScrambleBar } from '@/components/scramble/scramble-bar'
 import { SessionStats } from '@/components/session/session-stats'
 import { SolveList } from '@/components/session/solve-list'
+import { SettingsDialog } from '@/components/settings/settings-dialog'
 import { TimerPanel } from '@/components/timer/timer-panel'
 import { useSession } from '@/hooks/use-session'
 import type { SolveResult } from '@/hooks/useSpeedTimer'
 import { createCubingScrambleProvider } from '@/lib/scramble/cubing-provider'
 import type { ScrambleProvider } from '@/lib/scramble/types'
+import { defaultSettings, loadSettings, saveSettings, type Settings } from '@/lib/settings'
+import { HOLD_MS } from '@/lib/timer/machine'
+import { INSPECTION_MS } from '@/lib/timer/penalties'
 
 /** Lazily creates the provider once, on first render, instead of on every
  * render — safe even if the factory ever gains a side effect. Returns the
@@ -31,6 +35,20 @@ export function TimerScreen() {
   const [scramble, setScramble] = useState('')
   const [loadingScramble, setLoadingScramble] = useState(true)
   const [scrambleError, setScrambleError] = useState(false)
+  const [settings, setSettings] = useState<Settings>(defaultSettings)
+
+  useEffect(() => {
+    // Deferred to a microtask rather than called synchronously in the effect
+    // body, the same way the scramble mount effect avoids a bare setState
+    // call: react-hooks/set-state-in-effect flags a direct top-level
+    // setState statement in an effect, not one nested inside a callback.
+    Promise.resolve().then(() => setSettings(loadSettings()))
+  }, [])
+
+  const updateSettings = useCallback((next: Settings) => {
+    setSettings(next)
+    saveSettings(next)
+  }, [])
 
   const nextScramble = useCallback(async () => {
     setLoadingScramble(true)
@@ -81,9 +99,12 @@ export function TimerScreen() {
 
   return (
     <main className="mx-auto flex min-h-svh w-full max-w-4xl flex-col items-center gap-10 px-4 py-8">
-      <header className="w-full">
-        <h1 className="text-lg font-semibold">{t.appName}</h1>
-        <p className="text-sm text-neutral-400">{t.tagline}</p>
+      <header className="flex w-full items-center justify-between gap-4">
+        <div>
+          <h1 className="text-lg font-semibold">{t.appName}</h1>
+          <p className="text-sm text-neutral-400">{t.tagline}</p>
+        </div>
+        <SettingsDialog settings={settings} onChange={updateSettings} />
       </header>
       <ScrambleBar
         scramble={scramble}
@@ -91,7 +112,12 @@ export function TimerScreen() {
         error={scrambleError}
         onRefresh={() => void nextScramble()}
       />
-      <TimerPanel onSolveComplete={(result) => void recordSolve(result)} />
+      <TimerPanel
+        config={{ keys: settings.keys, holdMs: HOLD_MS, inspectionMs: INSPECTION_MS }}
+        hideTimeWhileSolving={settings.hideTimeWhileSolving}
+        sounds={settings.sounds}
+        onSolveComplete={(result) => void recordSolve(result)}
+      />
       <SessionStats stats={session.stats} />
       <SolveList
         solves={session.solves}
