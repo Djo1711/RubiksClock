@@ -40,7 +40,9 @@ skips nulls.
 
 1. Widen `Puzzle` in `lib/storage/types.ts` (`'2x2' | '3x3' | '4x4' | ...`).
 2. Add the matching WCA event ids to `EVENT_IDS` in
-   `lib/scramble/cubing-provider.ts` (`222`, `333`, `444`, …).
+   `app/api/scramble/route.ts` (`222`, `333`, `444`, …). The mapping lives on
+   the server because generation does; `lib/scramble/cubing-provider.ts` only
+   passes the puzzle id through as a query parameter and needs no change.
 3. Add a puzzle selector to `components/timer/timer-screen.tsx` and store the
    choice in `lib/settings.ts`.
 
