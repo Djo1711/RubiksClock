@@ -65,17 +65,20 @@ export function TimerDisplay({
   hint: string
 }) {
   return (
-    <div
-      role="status"
-      aria-live="polite"
-      className="flex flex-col items-center gap-4 select-none"
-    >
+    <div className="flex flex-col items-center gap-4 select-none">
       <span
+        aria-hidden="true"
         className={`font-mono text-[clamp(4.5rem,min(18vw,20svh),11rem)] leading-none tabular-nums transition-colors duration-150 ${PHASE_COLOR[phase]}`}
       >
         {value}
       </span>
-      <span className="text-sm tracking-wide text-neutral-400 uppercase">{hint}</span>
+      {/* The numerals repaint on every animation frame while the timer runs; a
+        * live region there would queue an announcement 60 times a second and
+        * never finish speaking. The hint only changes on a phase transition,
+        * so it is the one worth announcing. */}
+      <span role="status" aria-live="polite" className="text-sm tracking-wide text-neutral-400 uppercase">
+        {hint}
+      </span>
     </div>
   )
 }

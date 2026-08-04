@@ -25,10 +25,24 @@ describe('timerPhase', () => {
 })
 
 describe('TimerDisplay', () => {
-  it('renders the value and the hint, and announces changes politely', () => {
+  it('renders the value and the hint', () => {
     render(<TimerDisplay phase="inspection" value="12" hint="Inspection" />)
     expect(screen.getByText('12')).not.toBeNull()
     expect(screen.getByText('Inspection')).not.toBeNull()
-    expect(screen.getByRole('status')).not.toBeNull()
+  })
+
+  // The numerals repaint on every animation frame while counting; a live
+  // region there would queue an announcement per frame and never finish
+  // speaking. Only the hint, which changes on a phase transition, should be
+  // announced.
+  it('announces the hint, not the numerals, through the live region', () => {
+    render(<TimerDisplay phase="inspection" value="12" hint="Inspection" />)
+    const status = screen.getByRole('status')
+    expect(status.textContent).toBe('Inspection')
+  })
+
+  it('hides the numerals from assistive technology', () => {
+    render(<TimerDisplay phase="inspection" value="12" hint="Inspection" />)
+    expect(screen.getByText('12').getAttribute('aria-hidden')).toBe('true')
   })
 })
