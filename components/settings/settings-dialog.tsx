@@ -15,6 +15,12 @@ import { Switch } from '@/components/ui/switch'
 import { locales } from '@/lib/i18n/dictionaries'
 import { defaultSettings, type Settings } from '@/lib/settings'
 
+// Space is intercepted by useSpeedTimer to dispatch `stop` before any
+// per-code binding is even checked, so binding a slot to it would produce a
+// key that can never be held. Tab and Enter fight the dialog's own focus
+// handling. All three are refused, exactly like an already-bound code.
+const DENIED_CODES: ReadonlySet<string> = new Set(['Space', 'Tab', 'Enter'])
+
 export function SettingsDialog({
   settings,
   onChange,
@@ -36,6 +42,7 @@ export function SettingsDialog({
         setCapturing(null)
         return
       }
+      if (DENIED_CODES.has(event.code)) return
       const taken = settings.keys.some((key, index) => key === event.code && index !== capturing)
       if (taken) return
       onChange({

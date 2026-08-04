@@ -52,4 +52,23 @@ describe('SettingsDialog key capture', () => {
       keys: ['KeyQ', 'KeyX', 'KeyD', 'KeyL', 'KeyI', 'KeyJ'],
     })
   })
+
+  it.each(['Space', 'Tab', 'Enter'])(
+    'refuses %s, which would produce an unusable binding, and keeps capture open',
+    async (code) => {
+      const onChange = vi.fn()
+      const user = userEvent.setup()
+      renderDialog(onChange)
+
+      await user.click(screen.getByRole('button', { name: 'Settings' }))
+      await user.click(screen.getByRole('button', { name: 'Z' }))
+      expect(screen.getByRole('button', { name: '…' })).not.toBeNull()
+
+      window.dispatchEvent(
+        new KeyboardEvent('keydown', { code, bubbles: true, cancelable: true }),
+      )
+      expect(onChange).not.toHaveBeenCalled()
+      expect(screen.getByRole('button', { name: '…' })).not.toBeNull()
+    },
+  )
 })
