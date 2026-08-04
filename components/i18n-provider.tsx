@@ -15,6 +15,7 @@ import {
   type Dictionary,
   type Locale,
 } from '@/lib/i18n/dictionaries'
+import { getSafeStorage, safeSetItem } from '@/lib/storage/safe-storage'
 
 type I18nValue = {
   locale: Locale
@@ -30,7 +31,7 @@ const I18nContext = createContext<I18nValue | null>(null)
 const LOCALE_CHANGE_EVENT = 'rubiksclock:locale-change'
 
 function getSnapshot(): Locale {
-  const stored = window.localStorage.getItem(LOCALE_STORAGE_KEY)
+  const stored = getSafeStorage()?.getItem(LOCALE_STORAGE_KEY) ?? null
   if (isLocale(stored)) return stored
   return navigator.language.toLowerCase().startsWith('fr') ? 'fr' : 'en'
 }
@@ -58,7 +59,7 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
   }, [locale])
 
   const setLocale = useCallback((next: Locale) => {
-    window.localStorage.setItem(LOCALE_STORAGE_KEY, next)
+    safeSetItem(getSafeStorage(), LOCALE_STORAGE_KEY, next)
     window.dispatchEvent(new Event(LOCALE_CHANGE_EVENT))
   }, [])
 

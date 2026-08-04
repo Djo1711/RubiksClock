@@ -1,3 +1,4 @@
+import { getSafeStorage, safeSetItem } from '@/lib/storage/safe-storage'
 import type { Penalty } from '@/lib/timer/penalties'
 import { isSolve, type Solve, type SolveRepository } from './types'
 
@@ -20,7 +21,7 @@ function read(storage: Storage | null): Solve[] {
 }
 
 function write(storage: Storage | null, solves: Solve[]): void {
-  storage?.setItem(STORAGE_KEY, JSON.stringify(solves))
+  safeSetItem(storage, STORAGE_KEY, JSON.stringify(solves))
 }
 
 /**
@@ -28,7 +29,7 @@ function write(storage: Storage | null, solves: Solve[]): void {
  * where there is no storage to read.
  */
 export function createLocalSolveRepository(
-  storage: Storage | null = typeof window === 'undefined' ? null : window.localStorage,
+  storage: Storage | null = getSafeStorage(),
 ): SolveRepository {
   return {
     async list() {

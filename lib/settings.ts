@@ -1,3 +1,4 @@
+import { getSafeStorage, safeSetItem } from '@/lib/storage/safe-storage'
 import { DEFAULT_KEYS } from '@/lib/timer/machine'
 
 export const SETTINGS_STORAGE_KEY = 'rubiksclock.settings.v1'
@@ -23,11 +24,7 @@ function isValidKeyMap(value: unknown): value is string[] {
   )
 }
 
-function defaultStorage(): Storage | null {
-  return typeof window === 'undefined' ? null : window.localStorage
-}
-
-export function loadSettings(storage: Storage | null = defaultStorage()): Settings {
+export function loadSettings(storage: Storage | null = getSafeStorage()): Settings {
   const raw = storage?.getItem(SETTINGS_STORAGE_KEY)
   if (!raw) return defaultSettings
   let parsed: unknown
@@ -85,9 +82,9 @@ export function subscribeSettings(listener: () => void): () => void {
 
 export function saveSettings(
   settings: Settings,
-  storage: Storage | null = defaultStorage(),
+  storage: Storage | null = getSafeStorage(),
 ): void {
-  storage?.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings))
+  safeSetItem(storage, SETTINGS_STORAGE_KEY, JSON.stringify(settings))
   cachedSettings = settings
   if (typeof window !== 'undefined') {
     window.dispatchEvent(new Event(SETTINGS_CHANGE_EVENT))

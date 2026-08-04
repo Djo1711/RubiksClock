@@ -55,4 +55,24 @@ describe('I18nProvider', () => {
     })
     expect(result.current.locale).toBe('fr')
   })
+
+  // Safari's "Block all cookies" and Firefox's strict site-data blocking
+  // throw SecurityError on reading the `localStorage` property itself, from
+  // inside getSnapshot during the provider's render. With no error boundary
+  // above it in the tree, an unguarded read here would blank the page.
+  it('renders with the browser-language fallback instead of throwing when localStorage is blocked', () => {
+    const original = Object.getOwnPropertyDescriptor(window, 'localStorage')!
+    Object.defineProperty(window, 'localStorage', {
+      configurable: true,
+      get() {
+        throw new DOMException('The operation is insecure.', 'SecurityError')
+      },
+    })
+    try {
+      const { result } = mount()
+      expect(result.current.locale).toBe('en')
+    } finally {
+      Object.defineProperty(window, 'localStorage', original)
+    }
+  })
 })
