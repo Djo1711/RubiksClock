@@ -3850,7 +3850,15 @@ create table if not exists public.sessions (
   created_at timestamptz not null default now()
 );
 
-create type public.penalty as enum ('none', 'plus2', 'dnf');
+-- Postgres has no CREATE TYPE IF NOT EXISTS, and every other statement here
+-- is re-runnable, so guard this one to match.
+do $$
+begin
+  create type public.penalty as enum ('none', 'plus2', 'dnf');
+exception
+  when duplicate_object then null;
+end
+$$;
 
 create table if not exists public.solves (
   id uuid primary key default gen_random_uuid(),

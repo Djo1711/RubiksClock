@@ -14,12 +14,22 @@ create table if not exists public.sessions (
   created_at timestamptz not null default now()
 );
 
-create type public.penalty as enum ('none', 'plus2', 'dnf');
+-- Postgres has no CREATE TYPE IF NOT EXISTS, and every other statement here
+-- is re-runnable, so guard this one to match.
+do $$
+begin
+  create type public.penalty as enum ('none', 'plus2', 'dnf');
+exception
+  when duplicate_object then null;
+end
+$$;
 
 create table if not exists public.solves (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references public.profiles (id) on delete cascade,
   session_id uuid references public.sessions (id) on delete set null,
+  -- Deliberately unconstrained: widening to 2x2/4x4/... is roadmap section 3,
+  -- and an enum here would need a migration for every new event.
   puzzle text not null default '3x3',
   scramble text not null,
   raw_ms integer not null check (raw_ms > 0),
