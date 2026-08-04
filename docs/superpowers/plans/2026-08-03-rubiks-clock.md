@@ -12,7 +12,7 @@
 
 - Spec of record: `docs/superpowers/specs/2026-08-03-rubiks-clock-design.md`. Read it before Task 1.
 - Package manager is **pnpm**. Never run `npm install` or `yarn`.
-- Repository root is `/Users/user/RubiksClock`. Git is already initialised on branch `main` with the spec committed. Repo-local git identity is already set to `Djo1711 <94553134+Djo1711@users.noreply.github.com>` — do not change it.
+- Work from the repository root. Git is already initialised on branch `main` with the spec committed. The repo-local git identity is already configured — do not change it.
 - Import alias is `@/*` mapped to the repo root. No `src/` directory.
 - `HOLD_MS = 550`, `INSPECTION_MS = 15000`, `INSPECTION_PLUS2_LIMIT_MS = 17000`. These live in code as named constants, never as inline literals outside their defining module.
 - All measured times are integer milliseconds. Display truncates to hundredths, never rounds up.
@@ -78,8 +78,8 @@ README.md                                                                       
 `create-next-app` refuses to run in a directory that already contains `docs/`, so scaffold outside and copy in.
 
 ```bash
-cd /Users/user/RubiksClock
-SCAFFOLD=/private/tmp/claude-502/-Users-user-RubiksClock/cc51642b-63d7-41f2-b965-8a2c695f415f/scratchpad/rc-scaffold
+cd "$(git rev-parse --show-toplevel)"
+SCAFFOLD="${TMPDIR:-/tmp}/rc-scaffold"
 rm -rf "$SCAFFOLD"
 pnpm create next-app@latest "$SCAFFOLD" --ts --tailwind --eslint --app --no-src-dir --import-alias "@/*" --use-pnpm --turbopack --disable-git
 ```
@@ -89,8 +89,8 @@ Expected: ends with `Success! Created rc-scaffold`.
 - [ ] **Step 2: Copy the scaffold into the repo and install**
 
 ```bash
-cd /Users/user/RubiksClock
-SCAFFOLD=/private/tmp/claude-502/-Users-user-RubiksClock/cc51642b-63d7-41f2-b965-8a2c695f415f/scratchpad/rc-scaffold
+cd "$(git rev-parse --show-toplevel)"
+SCAFFOLD="${TMPDIR:-/tmp}/rc-scaffold"
 rsync -a --exclude node_modules --exclude .git --exclude .gitignore --exclude README.md "$SCAFFOLD"/ .
 pnpm install
 ```
