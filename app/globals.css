@@ -89,6 +89,26 @@
   --color-state-danger: oklch(0.7 0.19 27);
 }
 
+/*
+ * The WCA colour scheme, for the scramble's cube net
+ * (components/scramble/cube-net.tsx). One token per face, named after the face
+ * it belongs to on a solved cube: U white, R red, F green, D yellow, L orange,
+ * B blue.
+ *
+ * These are the competition colours, nudged lighter in OKLCH than the printed
+ * plastic so that red, blue and green stay distinguishable from each other at
+ * the ~8 px a sticker gets in the net, against a near-black background. Hue is
+ * left where the WCA puts it, so the net still reads as a real cube.
+ */
+@theme {
+  --color-cube-u: oklch(0.97 0 0);
+  --color-cube-r: oklch(0.58 0.21 25);
+  --color-cube-f: oklch(0.62 0.17 152);
+  --color-cube-d: oklch(0.87 0.17 92);
+  --color-cube-l: oklch(0.72 0.19 48);
+  --color-cube-b: oklch(0.55 0.19 258);
+}
+
 /* The dark theme is the only theme, so it lives on :root rather than on .dark. */
 :root,
 .dark {
