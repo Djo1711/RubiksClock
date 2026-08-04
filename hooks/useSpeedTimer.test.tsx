@@ -126,6 +126,28 @@ describe('useSpeedTimer', () => {
     expect(view.result.current.state.status).toBe('inspection')
   })
 
+  it('stops a running timer from the touch pad stop helper', () => {
+    const { view, advance, holdAll, keyUp, onSolveComplete } = setup()
+    holdAll()
+    advance(HOLD_MS)
+    keyUp(DEFAULT_KEYS[0])
+    advance(9_000)
+    holdAll()
+    advance(HOLD_MS)
+    keyUp(DEFAULT_KEYS[0])
+    expect(view.result.current.state.status).toBe('running')
+    advance(12_340)
+    act(() => {
+      view.result.current.stop()
+    })
+    expect(view.result.current.state.status).toBe('stopped')
+    expect(onSolveComplete).toHaveBeenCalledWith({
+      rawMs: 12_340,
+      inspectionMs: 9_000 + HOLD_MS,
+      penalty: 'none',
+    })
+  })
+
   it('publishes a fresh now from the animation frame loop while counting', async () => {
     const { view, advance, holdAll } = setup()
     holdAll()

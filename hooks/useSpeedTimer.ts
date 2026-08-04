@@ -84,6 +84,7 @@ export function useSpeedTimer(options: UseSpeedTimerOptions = {}) {
     (code: string) => dispatch({ type: 'keyUp', code, at: clock() }),
     [clock, dispatch],
   )
+  const stop = useCallback(() => dispatch({ type: 'stop', at: clock() }), [clock, dispatch])
 
   // Keyboard is the only input the machine cares about.
   useEffect(() => {
@@ -160,5 +161,6 @@ export function useSpeedTimer(options: UseSpeedTimerOptions = {}) {
     armed: isArmed(state, now, config),
     press,
     release,
+    stop,
   }
 }

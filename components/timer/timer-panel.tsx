@@ -29,7 +29,7 @@ export function TimerPanel({
   onSolveComplete?: (result: SolveResult) => void
 }) {
   const { t } = useI18n()
-  const { state, now, armed, press, release } = useSpeedTimer({ config, onSolveComplete })
+  const { state, now, armed, press, release, stop } = useSpeedTimer({ config, onSolveComplete })
   const phase = timerPhase(state, now, armed, config)
 
   const inspecting = state.status === 'inspection' || state.status === 'armingSolve'
@@ -104,7 +104,13 @@ export function TimerPanel({
         ) : null}
       </div>
       <KeyHints keys={config.keys} held={state.heldKeys} />
-      <TouchPads keys={config.keys} onPress={press} onRelease={release} />
+      <TouchPads
+        keys={config.keys}
+        onPress={press}
+        onRelease={release}
+        running={state.status === 'running'}
+        onStop={stop}
+      />
     </section>
   )
 }
