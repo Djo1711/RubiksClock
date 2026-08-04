@@ -22,21 +22,26 @@ export function CubePreview({ scramble }: { scramble: string }) {
 
   useEffect(() => {
     let cancelled = false
-    void import('cubing/twisty').then(({ TwistyPlayer }) => {
-      if (cancelled || !host.current) return
-      const instance = new TwistyPlayer({
-        puzzle: '3x3x3',
-        visualization: '3D',
-        background: 'none',
-        controlPanel: 'none',
-        hintFacelets: 'none',
-        alg: latestScramble.current,
-      })
-      instance.style.width = '100%'
-      instance.style.height = '100%'
-      host.current.replaceChildren(instance)
-      player.current = instance as unknown as HTMLElement & { alg: string }
-    })
+    void import('cubing/twisty').then(
+      ({ TwistyPlayer }) => {
+        if (cancelled || !host.current) return
+        const instance = new TwistyPlayer({
+          puzzle: '3x3x3',
+          visualization: '3D',
+          background: 'none',
+          controlPanel: 'none',
+          hintFacelets: 'none',
+          alg: latestScramble.current,
+        })
+        instance.style.width = '100%'
+        instance.style.height = '100%'
+        host.current.replaceChildren(instance)
+        player.current = instance as unknown as HTMLElement & { alg: string }
+      },
+      (error: unknown) => {
+        console.error('Failed to load the cube preview', error)
+      },
+    )
     return () => {
       cancelled = true
     }
