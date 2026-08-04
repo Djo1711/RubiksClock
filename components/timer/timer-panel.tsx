@@ -71,14 +71,17 @@ export function TimerPanel({
     }
   })()
 
+  // Escape aborts from any state (README documents it), but it is only worth
+  // saying out loud during inspection and the solve itself: those are the
+  // two moments with something on the line to lose.
   const hint: Record<TimerPhase, string> = {
     idle: t.idleHint,
     arming: t.armingHint,
     ready: state.status === 'armingSolve' ? t.releaseHint : t.readyHint,
-    inspection: t.inspectionLabel,
+    inspection: `${t.inspectionLabel} · ${t.abortHint}`,
     inspectionPlus2: t.plus2Warning,
     inspectionDnf: t.dnfWarning,
-    running: t.runningHint,
+    running: `${t.runningHint} · ${t.abortHint}`,
     stopped: t.stoppedHint,
   }
 
