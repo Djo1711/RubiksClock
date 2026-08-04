@@ -7,10 +7,10 @@ import type { ScrambleProvider } from './types'
  * nearly solved.
  *
  * Generation happens server-side, via `/api/scramble`, rather than by
- * importing `cubing/scramble` in the browser: `cubing/scramble` needs a real
- * search worker, and this project's bundler cannot instantiate that worker
- * (see .superpowers/sdd/task-10-report.md for the diagnosis). Node has no
- * such restriction, so the Route Handler does the work instead.
+ * importing `cubing/scramble` in the browser: cubing.js computes
+ * random-state scrambles in a web worker whose sibling chunks Next.js does
+ * not emit, so the browser build 404s on them (cubing/cubing.js#309, #327).
+ * Node has no such restriction, so the Route Handler does the work instead.
  */
 export function createCubingScrambleProvider(): ScrambleProvider {
   return {

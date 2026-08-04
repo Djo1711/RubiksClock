@@ -1,10 +1,9 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import type { Puzzle } from '@/lib/storage'
 
-// cubing/scramble needs a real search worker, which the browser bundler
-// (Turbopack or webpack) cannot currently instantiate for this project's
-// dependency graph — see .superpowers/sdd/task-10-report.md. Generation
-// happens here, in Node, instead.
+// cubing.js computes random-state scrambles in a web worker whose sibling
+// chunks Next.js does not emit, so the browser build 404s on them
+// (cubing/cubing.js#309, #327). Generation happens here, in Node, instead.
 export const runtime = 'nodejs'
 // Every request must produce a fresh random-state scramble; never serve a
 // cached/prerendered response.
