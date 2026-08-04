@@ -83,22 +83,26 @@ export function TimerPanel({
   }
 
   return (
-    <section className="flex flex-col items-center gap-8">
+    <section className="flex w-full flex-col items-center gap-6">
       <TimerDisplay phase={phase} value={value} hint={hint[phase]} />
-      {inspecting ? (
-        <div className="flex gap-2" aria-hidden="true">
-          <span
-            className={`h-2 w-8 rounded-full transition-colors ${
-              inspectionElapsed >= CUES[0] ? 'bg-(--color-state-warn)' : 'bg-neutral-800'
-            }`}
-          />
-          <span
-            className={`h-2 w-8 rounded-full transition-colors ${
-              inspectionElapsed >= CUES[1] ? 'bg-(--color-state-danger)' : 'bg-neutral-800'
-            }`}
-          />
-        </div>
-      ) : null}
+      {/* The row keeps its height whether or not the cue markers are in it, so
+        * the numerals never move when inspection starts. */}
+      <div className="flex h-2 gap-2" aria-hidden="true">
+        {inspecting ? (
+          <>
+            <span
+              className={`h-2 w-8 rounded-full transition-colors ${
+                inspectionElapsed >= CUES[0] ? 'bg-(--color-state-warn)' : 'bg-neutral-800'
+              }`}
+            />
+            <span
+              className={`h-2 w-8 rounded-full transition-colors ${
+                inspectionElapsed >= CUES[1] ? 'bg-(--color-state-danger)' : 'bg-neutral-800'
+              }`}
+            />
+          </>
+        ) : null}
+      </div>
       <KeyHints keys={config.keys} held={state.heldKeys} />
       <TouchPads keys={config.keys} onPress={press} onRelease={release} />
     </section>

@@ -46,5 +46,7 @@ export function CubePreview({ scramble }: { scramble: string }) {
     if (player.current) player.current.alg = scramble
   }, [scramble])
 
-  return <div ref={host} className="h-40 w-40" aria-hidden="true" />
+  // Fills whatever box the caller reserves for it, so the preview never
+  // changes the height of the row it sits in.
+  return <div ref={host} className="h-full w-full" aria-hidden="true" />
 }

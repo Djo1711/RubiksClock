@@ -84,12 +84,20 @@ export function TimerScreen() {
     [nextScramble, record, scramble],
   )
 
+  // `flex-1` rather than `min-h-svh`: the page sits under the site nav, so a
+  // full-viewport main would always overflow by the nav's height. Filling the
+  // space the nav leaves keeps the scramble, the timer and the session
+  // statistics inside one screen, and lets the document grow only once the
+  // solve list has something to show.
   return (
-    <main className="mx-auto flex min-h-svh w-full max-w-4xl flex-col items-center gap-10 px-4 py-8">
+    <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-6 px-4 py-6">
       <header className="flex w-full items-center justify-between gap-4">
-        <div>
+        <div className="flex flex-wrap items-baseline gap-x-3">
           <h1 className="text-lg font-semibold">{t.appName}</h1>
-          <p className="text-sm text-neutral-400">{t.tagline}</p>
+          {/* On a phone every line above the touch pads costs the user the pads
+            * themselves, and the tagline is the one line that says nothing the
+            * screen below it does not already say. */}
+          <p className="hidden text-sm text-neutral-400 sm:block">{t.tagline}</p>
         </div>
         <SettingsDialog settings={settings} onChange={updateSettings} />
       </header>
@@ -99,12 +107,17 @@ export function TimerScreen() {
         error={scrambleError}
         onRefresh={() => void nextScramble()}
       />
-      <TimerPanel
-        config={{ keys: settings.keys, holdMs: HOLD_MS, inspectionMs: INSPECTION_MS }}
-        hideTimeWhileSolving={settings.hideTimeWhileSolving}
-        sounds={settings.sounds}
-        onSolveComplete={(result) => void recordSolve(result)}
-      />
+      {/* The timer takes every pixel the rest of the page does not need, and
+        * stays centred in it: the focal point on a tall screen, compact on a
+        * short one. */}
+      <div className="flex w-full flex-1 flex-col justify-center">
+        <TimerPanel
+          config={{ keys: settings.keys, holdMs: HOLD_MS, inspectionMs: INSPECTION_MS }}
+          hideTimeWhileSolving={settings.hideTimeWhileSolving}
+          sounds={settings.sounds}
+          onSolveComplete={(result) => void recordSolve(result)}
+        />
+      </div>
       <SessionStats stats={session.stats} />
       <SolveList
         solves={session.solves}

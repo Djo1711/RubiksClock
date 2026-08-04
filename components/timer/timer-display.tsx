@@ -71,7 +71,7 @@ export function TimerDisplay({
       className="flex flex-col items-center gap-4 select-none"
     >
       <span
-        className={`font-mono text-[clamp(4rem,18vw,11rem)] leading-none tabular-nums transition-colors duration-150 ${PHASE_COLOR[phase]}`}
+        className={`font-mono text-[clamp(4.5rem,min(18vw,20svh),11rem)] leading-none tabular-nums transition-colors duration-150 ${PHASE_COLOR[phase]}`}
       >
         {value}
       </span>
