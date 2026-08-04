@@ -45,6 +45,14 @@ skips nulls.
    passes the puzzle id through as a query parameter and needs no change.
 3. Add a puzzle selector to `components/timer/timer-screen.tsx` and store the
    choice in `lib/settings.ts`.
+4. Teach the cube net about the new puzzle, or hide it for the puzzles it does
+   not know. `lib/cube/facelets.ts` is the only 3x3-specific module: it models
+   six faces of nine stickers and accepts only the six face turns, so a 2x2 or a
+   4x4 scramble either draws wrong or throws on a token like `Rw`. The turns are
+   declared as a face rotation plus a 4-cycle of adjacency strips, so widening
+   it means generalising the strip width and the wide-move notation, not
+   rewriting the geometry. `components/scramble/cube-net.tsx` then needs its
+   grid to stop assuming three cells per face.
 
 The state machine, the statistics and the storage layer need no changes: they
 never assumed a 3x3.

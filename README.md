@@ -36,6 +36,18 @@ Scrambles are genuine WCA random-state scrambles, generated with
 [cubing.js](https://js.cubing.net/cubing/), not a random sequence of moves that
 might leave the cube nearly solved.
 
+Next to each one is the cube it produces, drawn as a flat net — `U` on top, then
+`L F R B`, with `D` below — in the WCA colours, so you can check your cube
+against it once the scramble is applied. The net is computed from the scramble
+rather than fetched or rendered by a library: `lib/cube/facelets.ts` applies the
+moves and hands the 54 stickers to `components/scramble/cube-net.tsx`, which
+draws them as inline SVG. It is not the 3D preview originally planned, because
+cubing.js's `<twisty-player>` does not initialise under Next.js's bundling — the
+custom element registers and takes up space but builds no DOM at all, silently,
+in development and in production alike. Computing the net locally needs no lazy
+chunk, no custom element and no WebGL, and being a pure function of the scramble
+it renders on the server, so the cube is there on the first paint.
+
 ## The six keys
 
 One attempt, from idle to a recorded time:
@@ -113,6 +125,7 @@ lib/audio.ts                       The inspection beeps (Web Audio)
 lib/i18n/dictionaries.ts           Locale, Dictionary, fr + en
 lib/scramble/types.ts              ScrambleProvider interface
 lib/scramble/cubing-provider.ts    Client for /api/scramble
+lib/cube/facelets.ts               A WCA scramble applied to a solved cube
 lib/storage/types.ts               Solve, SolveRepository, createSolve()
 lib/storage/local-repository.ts    localStorage implementation
 lib/storage/supabase-repository.ts Stub for the accounts milestone
@@ -127,7 +140,7 @@ components/timer/key-hints.tsx     Six-key visualiser
 components/timer/touch-pads.tsx    Two-thumb fallback
 components/timer/timer-panel.tsx   Composes the above, owns the hook
 components/timer/timer-screen.tsx  The page: scramble, timer, stats, solves
-components/scramble/scramble-bar.tsx, cube-preview.tsx
+components/scramble/scramble-bar.tsx, cube-net.tsx
 components/session/session-stats.tsx, solve-list.tsx
 components/settings/settings-dialog.tsx
 components/i18n-provider.tsx       Context + useI18n()
