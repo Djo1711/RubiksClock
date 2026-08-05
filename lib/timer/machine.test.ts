@@ -1,11 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import {
   DEFAULT_KEYS,
+  KEY_MAPS,
   HOLD_MS,
   defaultConfig,
   initialState,
   inspectionRemainingMs,
   isArmed,
+  keysPerHand,
   reduce,
   solveElapsedMs,
   type TimerEvent,
@@ -22,7 +24,7 @@ function feed(events: TimerEvent[], from: TimerState = initialState): TimerState
   return events.reduce((state, event) => reduce(state, event, defaultConfig), from)
 }
 
-/** All six keys held at t=0, released at t=HOLD_MS: inspection starts. */
+/** Every key held at t=0, released at t=HOLD_MS: inspection starts. */
 function intoInspection(): TimerState {
   return feed([...allDown(0), up(L1, HOLD_MS)])
 }
@@ -48,12 +50,12 @@ describe('idle', () => {
     expect(state.heldKeys).toEqual([L1])
   })
 
-  it('ignores keys outside the configured six', () => {
+  it('ignores keys outside the configured map', () => {
     const state = feed([down('KeyX', 0)])
     expect(state.heldKeys).toEqual([])
   })
 
-  it('arms once all six keys are held', () => {
+  it('arms once every configured key is held', () => {
     const state = feed(allDown(0))
     expect(state.status).toBe('armingInspection')
     expect(state.armedAt).toBe(0)
@@ -93,7 +95,7 @@ describe('armingInspection', () => {
 })
 
 describe('inspection', () => {
-  it('arms the solve once all six keys are held again', () => {
+  it('arms the solve once every key is held again', () => {
     const state = feed(allDown(5_000), intoInspection())
     expect(state.status).toBe('armingSolve')
     expect(state.armedAt).toBe(5_000)
@@ -151,7 +153,7 @@ describe('running', () => {
     expect(state.rawMs).toBe(12_340)
   })
 
-  it('ignores the six keys so a solve cannot be re-armed mid-attempt', () => {
+  it('ignores the mapped keys so a solve cannot be re-armed mid-attempt', () => {
     const running = intoRunning(9_000)
     const state = feed(allDown(running.solveStartedAt! + 1_000), running)
     expect(state.status).toBe('running')
@@ -166,7 +168,7 @@ describe('running', () => {
 })
 
 describe('stopped', () => {
-  it('starts the next attempt when the six keys are held again, clearing the result', () => {
+  it('starts the next attempt when the keys are held again, clearing the result', () => {
     const running = intoRunning(9_000)
     const stopped = reduce(
       running,
@@ -202,5 +204,41 @@ describe('custom key maps', () => {
       { type: 'keyDown', code: 'KeyB', at: 0 } as const,
     ].reduce((s, e) => reduce(s, e, config), initialState)
     expect(state.status).toBe('armingInspection')
+  })
+  // Keyboard ghosting means many keyboards cannot report six keys at once, so
+  // the map is configurable at one, two or three keys per hand. Every count has
+  // to carry a whole attempt, not just the first arming. Wrapped in tuples
+  // because it.each spreads a bare array into separate arguments.
+  it.each(Object.values(KEY_MAPS).map((keys) => [keys] as const))(
+    'carries a full attempt on a %j map',
+    (keys) => {
+      const config = { ...defaultConfig, keys }
+      const run = (events: TimerEvent[], from: TimerState) =>
+        events.reduce((state, event) => reduce(state, event, config), from)
+      const holdEvery = (at: number) => keys.map((code) => down(code, at))
+
+      const armed = run(holdEvery(0), initialState)
+      expect(armed.status).toBe('armingInspection')
+      expect(armed.heldKeys).toHaveLength(keys.length)
+
+      const inspecting = run([up(keys[0], HOLD_MS)], armed)
+      expect(inspecting.status).toBe('inspection')
+
+      const running = run([...holdEvery(9_000), up(keys[0], 9_000 + HOLD_MS)], inspecting)
+      expect(running.status).toBe('running')
+      expect(running.inspectionMs).toBe(9_000)
+      expect(running.penalty).toBe('none')
+
+      const stopped = reduce(running, { type: 'stop', at: running.solveStartedAt! + 12_340 }, config)
+      expect(stopped.status).toBe('stopped')
+      expect(stopped.rawMs).toBe(12_340)
+    },
+  )
+
+  it('splits every map evenly between the two hands', () => {
+    for (const keys of Object.values(KEY_MAPS)) {
+      expect(keys.length % 2).toBe(0)
+      expect(keysPerHand(keys)).toBe(keys.length / 2)
+    }
   })
 })

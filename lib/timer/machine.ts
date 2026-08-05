@@ -4,10 +4,41 @@ import { INSPECTION_MS, inspectionPenalty, type Penalty } from './penalties'
 export const HOLD_MS = 550
 
 /**
- * Physical key positions, not characters: these are the AZERTY home-row and
- * upper-row keys under each hand, and the same positions on a QWERTY board.
+ * Physical key positions, not characters, so the same fingering works on AZERTY
+ * and QWERTY. Left hand first, then right: that order is what splits the map
+ * between the two hands.
+ *
+ * All of them sit on the home row. A set spread across rows is likelier to be
+ * masked by keyboard ghosting — a keyboard matrix shares rows and columns, so
+ * only so many simultaneous presses can be reported and some combinations hide
+ * each other. When the hardware drops a key the browser never sees it, and no
+ * amount of software can recover it.
+ *
+ * Hence the choice of counts. A Stackmat has exactly one sensor per hand, so a
+ * single key per hand already commits both hands, which is the whole point of
+ * the hold. More per hand is a stricter habit, never a WCA requirement.
  */
-export const DEFAULT_KEYS = ['KeyQ', 'KeyZ', 'KeyD', 'KeyL', 'KeyI', 'KeyJ'] as const
+export const KEY_MAPS = {
+  1: ['KeyF', 'KeyJ'],
+  2: ['KeyD', 'KeyF', 'KeyJ', 'KeyK'],
+  3: ['KeyS', 'KeyD', 'KeyF', 'KeyJ', 'KeyK', 'KeyL'],
+} as const satisfies Record<number, readonly string[]>
+
+/** How many keys each hand holds. */
+export type KeysPerHand = keyof typeof KEY_MAPS
+
+export const KEYS_PER_HAND_OPTIONS = [1, 2, 3] as const
+
+/**
+ * Two per hand: both hands committed with two fingers each, comfortably under
+ * the ghosting threshold of a typical keyboard.
+ */
+export const DEFAULT_KEYS = KEY_MAPS[2]
+
+/** The number of keys a hand holds under this map, given hands split evenly. */
+export function keysPerHand(keys: readonly string[]): number {
+  return keys.length / 2
+}
 
 export type TimerStatus =
   | 'idle'
