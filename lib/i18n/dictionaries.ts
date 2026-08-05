@@ -45,6 +45,13 @@ export type Dictionary = {
   settings: string
   settingsKeys: string
   settingsKeysHint: string
+  settingsKeysPerHand: string
+  settingsKeysPerHandHint: string
+  settingsKeyboardTest: string
+  settingsKeyboardTestHint: string
+  settingsKeysHeldNow: string
+  settingsKeysHeldMax: string
+  settingsKeyboardTestReset: string
   settingsKeysCapture: string
   settingsKeysReset: string
   settingsHideTime: string
@@ -66,7 +73,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
     navHistory: 'Historique',
     navLeaderboard: 'Classement',
     navSignIn: 'Se connecter',
-    idleHint: 'Maintiens les six touches des deux mains',
+    idleHint: 'Maintiens tes touches des deux mains',
     armingHint: 'Continue de maintenir…',
     touchPadLeft: 'Zone main gauche',
     touchPadRight: 'Zone main droite',
@@ -76,7 +83,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
     plus2Warning: '+2 : inspection dépassée',
     dnfWarning: 'DNF : plus de 17 secondes d’inspection',
     runningHint: 'Espace ou une zone tactile pour arrêter',
-    stoppedHint: 'Maintiens les six touches pour le solve suivant',
+    stoppedHint: 'Maintiens tes touches pour le solve suivant',
     abortHint: 'Échap pour annuler',
     scramble: 'Mélange',
     newScramble: 'Nouveau mélange',
@@ -104,14 +111,23 @@ export const dictionaries: Record<Locale, Dictionary> = {
     settingsKeysHint:
       'Les touches sont lues par position physique, donc le même placement de doigts marche en AZERTY comme en QWERTY.',
     settingsKeysCapture: 'Appuie sur une touche…',
-    settingsKeysReset: 'Rétablir Q Z D / L I J',
+    settingsKeysReset: 'Rétablir les touches par défaut',
+    settingsKeysPerHand: 'Touches par main',
+    settingsKeysPerHandHint:
+      'Beaucoup de claviers ne savent pas remonter six touches à la fois : moins de touches par main est plus fiable. Un Stackmat n’a d’ailleurs qu’un capteur par main.',
+    settingsKeyboardTest: 'Test du clavier',
+    settingsKeyboardTestHint:
+      'Maintiens autant de touches que possible pour trouver la limite de ton clavier.',
+    settingsKeysHeldNow: 'Touches détectées',
+    settingsKeysHeldMax: 'Maximum simultané',
+    settingsKeyboardTestReset: 'Réinitialiser',
     settingsHideTime: 'Masquer le temps pendant le solve',
     settingsHideTimeHint: 'Comme en compétition : tu ne vois le temps qu’à la fin.',
     settingsSounds: 'Signaux sonores',
     settingsSoundsHint: 'Bips aux 8 et 12 secondes d’inspection (règles A3b1 et A3b2).',
     settingsLanguage: 'Langue',
     ghostingHint:
-      'Ton clavier ne remonte pas les six touches en même temps ? Change-les dans les réglages.',
+      'Une touche ne répond pas ? Ton clavier ne peut en signaler qu’un nombre limité à la fois. Réduis les touches par main ci-dessus, ou remappe celles qui se bloquent.',
     comingSoonTitle: 'Bientôt disponible',
     comingSoonBody:
       'Cette page arrive avec les comptes utilisateurs. En attendant, tes solves sont enregistrés dans ce navigateur.',
@@ -124,7 +140,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
     navHistory: 'History',
     navLeaderboard: 'Leaderboard',
     navSignIn: 'Sign in',
-    idleHint: 'Hold the six keys with both hands',
+    idleHint: 'Hold your keys with both hands',
     armingHint: 'Keep holding…',
     touchPadLeft: 'Left hand pad',
     touchPadRight: 'Right hand pad',
@@ -134,7 +150,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
     plus2Warning: '+2: inspection exceeded',
     dnfWarning: 'DNF: inspection past 17 seconds',
     runningHint: 'Space or a touch pad to stop',
-    stoppedHint: 'Hold the six keys for the next solve',
+    stoppedHint: 'Hold your keys for the next solve',
     abortHint: 'Escape to cancel',
     scramble: 'Scramble',
     newScramble: 'New scramble',
@@ -162,14 +178,23 @@ export const dictionaries: Record<Locale, Dictionary> = {
     settingsKeysHint:
       'Keys are read by physical position, so the same fingering works on AZERTY and QWERTY.',
     settingsKeysCapture: 'Press a key…',
-    settingsKeysReset: 'Reset to Q Z D / L I J',
+    settingsKeysReset: 'Reset to the default keys',
+    settingsKeysPerHand: 'Keys per hand',
+    settingsKeysPerHandHint:
+      'Many keyboards cannot report six keys at once, so fewer keys per hand is more reliable. A Stackmat itself has only one sensor per hand.',
+    settingsKeyboardTest: 'Keyboard test',
+    settingsKeyboardTestHint:
+      'Hold as many keys as you can to find your keyboard’s limit.',
+    settingsKeysHeldNow: 'Keys detected',
+    settingsKeysHeldMax: 'Simultaneous maximum',
+    settingsKeyboardTestReset: 'Reset',
     settingsHideTime: 'Hide the time while solving',
     settingsHideTimeHint: 'Competition style: you only see the result at the end.',
     settingsSounds: 'Sound cues',
     settingsSoundsHint: 'Beeps at 8 and 12 seconds of inspection (A3b1 and A3b2).',
     settingsLanguage: 'Language',
     ghostingHint:
-      'Keyboard not reporting all six keys at once? Remap them in the settings.',
+      'A key not responding? Your keyboard can only report so many at once. Lower the keys per hand above, or remap the ones that clash.',
     comingSoonTitle: 'Coming soon',
     comingSoonBody:
       'This page arrives with user accounts. Until then your solves are stored in this browser.',
