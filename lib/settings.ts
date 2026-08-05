@@ -15,10 +15,19 @@ export const defaultSettings: Settings = {
   sounds: true,
 }
 
+/**
+ * One, two or three keys per hand. The count is even so the map always splits
+ * evenly between the two hands, which is how KeyHints and TouchPads divide it.
+ * Six is kept because that was the only count earlier versions stored, but most
+ * keyboards cannot report six simultaneous presses (matrix ghosting), so
+ * smaller maps have to be accepted too.
+ */
+const VALID_KEY_COUNTS: ReadonlySet<number> = new Set([2, 4, 6])
+
 function isValidKeyMap(value: unknown): value is string[] {
   return (
     Array.isArray(value) &&
-    value.length === DEFAULT_KEYS.length &&
+    VALID_KEY_COUNTS.has(value.length) &&
     value.every((key) => typeof key === 'string' && key.length > 0) &&
     new Set(value).size === value.length
   )

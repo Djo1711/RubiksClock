@@ -27,11 +27,42 @@ describe('settings', () => {
     expect(loadSettings()).toEqual(defaultSettings)
   })
 
-  it('rejects a key map that is not six distinct keys', () => {
+  // One key per hand is enough to commit both hands, and few keyboards can
+  // report six presses at once, so 2, 4 and 6 keys are all legitimate maps.
+  it.each([
+    ['one key per hand', ['KeyF', 'KeyJ']],
+    ['two keys per hand', ['KeyD', 'KeyF', 'KeyJ', 'KeyK']],
+    ['three keys per hand', ['KeyS', 'KeyD', 'KeyF', 'KeyJ', 'KeyK', 'KeyL']],
+  ])('loads a stored map of %s unchanged', (_label, keys) => {
+    localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify({ ...defaultSettings, keys }))
+    expect(loadSettings().keys).toEqual(keys)
+  })
+
+  // The six-key map every existing install stored before the count became
+  // configurable: still a valid count, so it must survive the upgrade.
+  it('keeps a previously stored six-key map', () => {
+    const stored = ['KeyQ', 'KeyZ', 'KeyD', 'KeyL', 'KeyI', 'KeyJ']
     localStorage.setItem(
       SETTINGS_STORAGE_KEY,
-      JSON.stringify({ ...defaultSettings, keys: ['KeyQ', 'KeyQ'] }),
+      JSON.stringify({ ...defaultSettings, keys: stored }),
     )
+    expect(loadSettings().keys).toEqual(stored)
+  })
+
+  it.each([
+    ['a duplicate', ['KeyF', 'KeyF']],
+    ['an odd count', ['KeyD', 'KeyF', 'KeyJ']],
+    ['a single key, which cannot split across two hands', ['KeyF']],
+    ['no key at all', []],
+    [
+      'more keys than any hand pairing',
+      ['KeyA', 'KeyS', 'KeyD', 'KeyF', 'KeyJ', 'KeyK', 'KeyL', 'KeyM'],
+    ],
+    ['a non-string entry', ['KeyF', 42]],
+    ['an empty code', ['KeyF', '']],
+    ['not an array at all', 'KeyF'],
+  ])('falls back to the defaults on a key map with %s', (_label, keys) => {
+    localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify({ ...defaultSettings, keys }))
     expect(loadSettings().keys).toEqual(defaultSettings.keys)
   })
 })
