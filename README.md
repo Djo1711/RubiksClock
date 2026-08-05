@@ -23,7 +23,7 @@ From the WCA Regulations (Article A3, A4, A6):
 | A3b2 | Warning at 12 seconds elapsed | Visual cue + optional double beep |
 | A3c1 | Solve started after 15 s → +2 | Penalty computed automatically |
 | A3c2 | Solve started after 17 s → DNF | Penalty computed automatically |
-| A4a/A4b | Hands flat on the timer, fingers on the buttons, before the start | Six keys must be held simultaneously |
+| A4a/A4b | Hands flat on the timer, fingers on the buttons, before the start | Keys under both hands must be held simultaneously |
 | A4b1 | Hands stay on the timer until the solve starts | Timer starts on key release |
 | A6 | The competitor stops the timer at the end of the solve | Space stops the timer |
 
@@ -48,15 +48,15 @@ in development and in production alike. Computing the net locally needs no lazy
 chunk, no custom element and no WebGL, and being a pure function of the scramble
 it renders on the server, so the cube is there on the first paint.
 
-## The six keys
+## The keys
 
 One attempt, from idle to a recorded time:
 
-1. **Hold all six keys.** The numerals turn red while the hold is too short,
-   then green after 550 ms — the Stackmat's green-light delay.
+1. **Hold your keys, both hands.** The numerals turn red while the hold is too
+   short, then green after 550 ms — the Stackmat's green-light delay.
 2. **Release.** Inspection starts and counts down from 15.00. It turns amber
    past 15 s (a `+2` is coming) and red past 17 s (a `DNF`).
-3. **Hold all six keys again.** Red, then green after another 550 ms.
+3. **Hold them again.** Red, then green after another 550 ms.
 4. **Release.** The stopwatch runs.
 5. **Space** stops it. The solve is recorded with whatever penalty the
    inspection earned.
@@ -65,25 +65,39 @@ One attempt, from idle to a recorded time:
 leaving the tab: a hidden tab or an unfocused window cannot be trusted to
 deliver key releases, so the attempt is discarded rather than mistimed.
 
-The default keys are `Q Z D` for the left hand and `L I J` for the right — the
-AZERTY layout the app was written on. They are read by **physical position**
+**How many keys.** Choose **1, 2 or 3 per hand** in Settings; two is the
+default, giving `D F` for the left hand and `J K` for the right. All the default
+sets sit on the home row and are read by **physical position**
 (`KeyboardEvent.code`), not by character, so the same fingering works unchanged
 on a QWERTY keyboard.
 
-**Remapping them:** open **Settings**, click any of the six key buttons, and
-press the key you want in its place. A key already bound to another slot is
-refused; `Escape` cancels the capture. **Reset** puts `Q Z D / L I J` back. The
-keyboard visualiser under the timer lights up each key as it goes down, which
-is also the diagnostic for keyboard ghosting — if your keyboard cannot report
-six simultaneous keys, you will see it there and can remap to keys it can.
+Fewer keys is not a compromise: a Stackmat has exactly **one sensor per hand**,
+so a single key per hand already commits both hands, which is the entire point
+of the hold. More per hand is a stricter habit, never a WCA requirement.
+
+**Why it matters — keyboard ghosting.** A keyboard wires its keys in a matrix
+that shares rows and columns, so only so many simultaneous presses can be
+reported and some combinations mask each other. Most laptop keyboards cannot
+manage six. When the hardware drops a key the browser never receives an event,
+and no amount of software can recover it — the only real fix is to ask for fewer
+keys. **Settings → Keyboard test** tells you your limit: hold as many keys as
+you can and it shows how many register at once, and the maximum it has seen. If
+that tops out at three, pick one key per hand.
+
+**Remapping.** In Settings, click any key button and press the key you want in
+its place. A key already bound to another slot is refused, as are `Space`, `Tab`
+and `Enter`, which could never be held; `Escape` cancels the capture. The
+visualiser under the timer lights each key as it goes down, so you can see
+exactly which one is failing to register.
 
 Settings also holds *hide the time while solving* (competition style: you only
 see the result at the end), the 8 s / 12 s sound cues, and the language. The
 interface is French and English, picked from the browser's language on first
 visit and switchable at any time.
 
-On a phone there is no keyboard, so two touch pads replace the six keys: hold
-both with your thumbs, release, and the sequence above is identical.
+On a phone there is no keyboard, so two touch pads replace the keys: hold both
+with your thumbs, release, and the sequence above is identical. Tapping either
+pad stops a running solve, since there is no `Space` to press.
 
 ## Running it locally
 

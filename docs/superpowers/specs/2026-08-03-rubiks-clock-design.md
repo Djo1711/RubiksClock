@@ -23,7 +23,7 @@ From the WCA Regulations (Article A3, A4, A6):
 | A3b2 | Warning at 12 seconds elapsed | Visual cue + optional double beep |
 | A3c1 | Solve started after 15 s → +2 | Penalty computed automatically |
 | A3c2 | Solve started after 17 s → DNF | Penalty computed automatically |
-| A4a/A4b | Hands flat on the timer, fingers on the buttons, before the start | Six keys must be held simultaneously |
+| A4a/A4b | Hands flat on the timer, fingers on the buttons, before the start | Keys under both hands must be held simultaneously |
 | A4b1 | Hands stay on the timer until the solve starts | Timer starts on key release |
 | A6 | The competitor stops the timer at the end of the solve | Space stops the timer |
 
@@ -32,14 +32,28 @@ solve starts** (key release), and can be overridden by hand afterwards.
 
 ## 3. Interaction model
 
-Six keys, read by **physical position** (`event.code`), defaults chosen for an
-AZERTY keyboard: left hand `KeyQ` `KeyZ` `KeyD`, right hand `KeyL` `KeyI`
-`KeyJ`. Remappable in settings, persisted locally. Reading positions rather
-than characters means the same physical fingering works on a QWERTY keyboard.
+Keys read by **physical position** (`event.code`), so the same physical
+fingering works on AZERTY and QWERTY alike. The count is configurable at **1, 2
+or 3 per hand**, defaulting to two — `KeyD` `KeyF` for the left hand, `KeyJ`
+`KeyK` for the right. Every default set sits on the home row. Remappable in
+settings, persisted locally.
 
-A keyboard visualiser shows which of the six keys are currently held. This is
-also the diagnostic for keyboard ghosting: some keyboards cannot report six
-simultaneous keys, and the visualiser makes that visible so the user can remap.
+The count is configurable because keyboard ghosting is real and unavoidable in
+software: a keyboard matrix shares rows and columns, so only so many
+simultaneous presses can be reported and some combinations mask each other. Most
+laptop keyboards cannot report six. When the hardware drops a key the browser
+never receives an event, so nothing in the app can compensate — the only fix is
+to require fewer keys. Sets spread across rows are the likeliest to clash, hence
+the home row.
+
+Requiring fewer keys costs nothing in fidelity: a Stackmat has exactly one
+sensor per hand, so one key per hand already commits both hands, which is the
+purpose of the hold. More per hand is a stricter habit, not a WCA requirement.
+
+A keyboard visualiser shows which keys are currently held, so a key that fails
+to register is visible. Settings also carries a keyboard test that reports how
+many keys register at once and the maximum seen, which turns ghosting from a
+mystery into a number the user can act on.
 
 ### State machine
 
@@ -48,22 +62,22 @@ delay.
 
 | State | Display | Trigger | Next state |
 |---|---|---|---|
-| `IDLE` | Prompt to hold the six keys | all six keys down | `ARMING_INSPECTION` |
+| `IDLE` | Prompt to hold the keys | every mapped key down | `ARMING_INSPECTION` |
 | `ARMING_INSPECTION` | Red, then green after `HOLD_MS` of continuous hold | first key released, once green | `INSPECTION` |
 | | | any key released before `HOLD_MS` | `IDLE` |
-| `INSPECTION` | Countdown 15 → 0; amber 15–17 s (+2); red beyond 17 s (DNF) | all six keys down | `ARMING_SOLVE` |
+| `INSPECTION` | Countdown 15 → 0; amber 15–17 s (+2); red beyond 17 s (DNF) | every mapped key down | `ARMING_SOLVE` |
 | | | `Escape` | `IDLE` |
 | `ARMING_SOLVE` | Red, then green after `HOLD_MS` | first key released, once green | `RUNNING` (penalty frozen) |
 | | | any key released before `HOLD_MS` | `INSPECTION` (inspection clock never paused) |
 | `RUNNING` | Elapsed time, or a neutral marker if "hide time while solving" is on | `Space` | `STOPPED` |
 | | | `Escape` | `IDLE` (attempt discarded) |
-| `STOPPED` | Result, penalty chips `+2` / `DNF`, session stats | all six keys down | `ARMING_INSPECTION` (next attempt) |
+| `STOPPED` | Result, penalty chips `+2` / `DNF`, session stats | every mapped key down | `ARMING_INSPECTION` (next attempt) |
 
 Additional rules:
 
 The solve starts on the **first** key released once the green light is on, not
-on the last: on a Stackmat, lifting either hand starts the clock. Requiring all
-six releases would let a competitor lift one hand early for free.
+on the last: on a Stackmat, lifting either hand starts the clock. Waiting for
+every key to come up would let a competitor lift one hand early for free.
 
 - `Escape` returns to `IDLE` from any state, discarding the attempt in progress.
 - The window losing focus, or the tab becoming hidden, resets to `IDLE`. An
@@ -168,7 +182,7 @@ State is carried primarily by colour — idle neutral, arming red then green,
 inspection blue shading to amber then red, running neutral — so it is readable
 peripherally while the user's attention is on the cube. Transitions are short
 and respect `prefers-reduced-motion`. Layout is responsive; on touch devices a
-two-thumb hold zone replaces the six keys.
+two-thumb hold zone replaces the keys.
 
 Accessibility: state changes are announced to screen readers, colour is never
 the only signal (labels accompany every state), contrast meets WCAG AA.
