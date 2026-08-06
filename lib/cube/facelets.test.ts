@@ -9,6 +9,7 @@ import {
   type Face,
   type Facelet,
 } from './facelets'
+import { expectFirstTwoLayersIntact } from './testing'
 
 const SOLVED = solvedState()
 
@@ -51,21 +52,6 @@ function repeat(move: string, times: number): string {
 
 /** A real 20-move WCA-length scramble, used wherever an arbitrary one is needed. */
 const SCRAMBLE = "D2 F' R2 U' B2 L2 F2 D' L2 B U2 R' F' D R B' F' U L' B2"
-
-/**
- * Asserts that the first two layers are solved: the whole `D` face, plus the
- * bottom two rows of all four side faces. Every last-layer algorithm — OLL and
- * PLL alike — must leave exactly this much untouched, so it is the check that
- * validates an algorithm really is the algorithm it claims to be.
- */
-function expectFirstTwoLayersIntact(state: CubeState): void {
-  expect(face(state, 'D'), 'D face').toEqual(face(SOLVED, 'D'))
-  for (const name of ['R', 'F', 'L', 'B'] as const) {
-    expect(face(state, name).slice(3), `${name} bottom two rows`).toEqual(
-      face(SOLVED, name).slice(3),
-    )
-  }
-}
 
 describe('solvedState', () => {
   it('has nine stickers of each colour', () => {
