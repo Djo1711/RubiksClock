@@ -4,10 +4,10 @@ import { applyScramble, FACES, invertAlgorithm, type Face, type Facelet } from '
 /**
  * How a figure colours its stickers.
  *
- * `orientation` is the OLL picture: every sticker is either the U colour — it
- * points up, or sideways for a tab — or dark. `permutation` is the PLL picture:
- * the U face is uniformly the U colour, and the tabs carry their real face
- * colours, which is what shows where each piece has to go.
+ * `orientation` is the OLL picture: every sticker is either last-layer coloured
+ * — it points up, or sideways for a tab — or dark. `permutation` is the PLL
+ * picture: the U face is uniformly last-layer coloured, and the tabs carry their
+ * real face colours, which is what shows where each piece has to go.
  */
 export type LastLayerMode = 'orientation' | 'permutation'
 
@@ -99,11 +99,19 @@ export function lastLayerStickers(algorithm: string): { cells: Facelet[]; tabs: 
 /** A sticker that does not show the U colour, in the orientation figure. */
 const UNORIENTED = 'var(--muted)'
 
+/**
+ * The last layer is drawn yellow, not the U colour the scramble net uses.
+ * Scrambles are applied white-on-top, but CFOP solves the last layer as yellow
+ * with the white cross underneath — so every printed OLL and PLL sheet is
+ * yellow, and matching that is what makes these figures recognisable.
+ */
+export const LAST_LAYER = FACE_COLOUR.D
+
 /** What colour a sticker is drawn in, which is the whole difference between the
  * two modes. */
 function fillFor(sticker: Facelet, mode: LastLayerMode): string {
-  if (mode === 'permutation') return FACE_COLOUR[sticker]
-  return sticker === 'U' ? FACE_COLOUR.U : UNORIENTED
+  if (mode === 'permutation') return sticker === 'U' ? LAST_LAYER : FACE_COLOUR[sticker]
+  return sticker === 'U' ? LAST_LAYER : UNORIENTED
 }
 
 /**

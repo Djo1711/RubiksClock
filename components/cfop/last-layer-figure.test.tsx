@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { LastLayerFigure, lastLayerStickers, type LastLayerMode } from './last-layer-figure'
 import { OLL_CASES, PLL_CASES } from '@/lib/cfop'
 import { FACE_COLOUR } from '@/lib/cube/colours'
+import { LAST_LAYER } from './last-layer-figure'
 import type { Facelet } from '@/lib/cube/facelets'
 
 /**
@@ -99,7 +100,7 @@ describe('LastLayerFigure', () => {
     // is the picture and the metadata checked against each other.
     for (const entry of OLL_CASES) {
       const { cells } = figureRects(entry.algorithm, 'orientation')
-      const oriented = cells.filter((fill) => fill === FACE_COLOUR.U)
+      const oriented = cells.filter((fill) => fill === LAST_LAYER)
       expect(oriented, `OLL ${entry.id}`).toHaveLength(
         1 + entry.orientedCorners + entry.orientedEdges,
       )
@@ -110,7 +111,7 @@ describe('LastLayerFigure', () => {
     for (const entry of OLL_CASES) {
       const { cells, tabs } = figureRects(entry.algorithm, 'orientation')
       for (const fill of [...cells, ...tabs]) {
-        expect([FACE_COLOUR.U, 'var(--muted)'], `OLL ${entry.id}`).toContain(fill)
+        expect([LAST_LAYER, 'var(--muted)'], `OLL ${entry.id}`).toContain(fill)
       }
     }
   })
@@ -118,7 +119,7 @@ describe('LastLayerFigure', () => {
   it('shows every PLL case as a solved face, in the real colours of its sides', () => {
     for (const entry of PLL_CASES) {
       const { cells, tabs } = figureRects(entry.algorithm, 'permutation')
-      expect(cells, `PLL ${entry.name}`).toEqual(Array.from({ length: 9 }, () => FACE_COLOUR.U))
+      expect(cells, `PLL ${entry.name}`).toEqual(Array.from({ length: 9 }, () => LAST_LAYER))
       expect(tabs, `PLL ${entry.name}`).toEqual(
         lastLayerStickers(entry.algorithm).tabs.map((sticker) => FACE_COLOUR[sticker]),
       )
