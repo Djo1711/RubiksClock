@@ -1,14 +1,5 @@
+import { FACE_COLOUR } from '@/lib/cube/colours'
 import { applyScramble, FACES, type Facelet } from '@/lib/cube/facelets'
-
-/** Stickers are filled from the WCA colour tokens defined in app/globals.css. */
-const COLOUR: Record<Facelet, string> = {
-  U: 'var(--color-cube-u)',
-  R: 'var(--color-cube-r)',
-  F: 'var(--color-cube-f)',
-  D: 'var(--color-cube-d)',
-  L: 'var(--color-cube-l)',
-  B: 'var(--color-cube-b)',
-}
 
 /**
  * Where each face sits in the unfolded net, in cell units: the conventional
@@ -67,7 +58,7 @@ export function CubeNet({ scramble }: { scramble: string }) {
                 width={STICKER}
                 height={STICKER}
                 rx={1.2}
-                fill={COLOUR[sticker]}
+                fill={FACE_COLOUR[sticker]}
               />
             ))}
           </g>
